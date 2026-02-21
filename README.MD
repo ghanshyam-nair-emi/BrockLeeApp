@@ -13,9 +13,8 @@ cp .env.example .env
 
 **Step 2 — Build and start everything (local mode, no Azure required)**
 ```bash
-docker compose --profile local up --build
+docker compose --profile local up --force-recreate
 ```
-
 **Step 3 — Open the app**
 
 | Service | URL |
