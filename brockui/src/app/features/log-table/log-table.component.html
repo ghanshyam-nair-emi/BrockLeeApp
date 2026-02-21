@@ -1,0 +1,71 @@
+<!-- Metrics strip -->
+<div class="metrics-strip" *ngIf="metrics">
+  <div class="metric-chip">
+    <span class="mc-label">Submissions</span>
+    <span class="mc-value">{{ metrics.totalSubmissions }}</span>
+  </div>
+  <div class="metric-chip">
+    <span class="mc-label">Avg Age</span>
+    <span class="mc-value">{{ metrics.avgAge | number:'1.0-1' }}</span>
+  </div>
+  <div class="metric-chip">
+    <span class="mc-label">Avg Wage</span>
+    <span class="mc-value">₹{{ metrics.avgWage | number:'1.0-0' }}</span>
+  </div>
+  <div class="metric-chip">
+    <span class="mc-label">Avg NPS Value</span>
+    <span class="mc-value">₹{{ metrics.avgNpsRealValue | number:'1.0-0' }}</span>
+  </div>
+  <div class="metric-chip">
+    <span class="mc-label">Avg Index Value</span>
+    <span class="mc-value green">₹{{ metrics.avgIndexRealValue | number:'1.0-0' }}</span>
+  </div>
+  <div class="metric-chip">
+    <span class="mc-label">Avg Response</span>
+    <span class="mc-value">{{ metrics.avgResponseTimeMs | number:'1.0-1' }} ms</span>
+  </div>
+  <div class="refreshing-indicator" *ngIf="isRefreshing">
+    <span class="dot"></span> Live
+  </div>
+</div>
+
+<!-- Empty state -->
+<div class="empty-state" *ngIf="logs.length === 0">
+  <p>No submissions yet. Be the first to submit.</p>
+</div>
+
+<!-- Log table -->
+<div class="table-wrap" *ngIf="logs.length > 0">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Age</th>
+        <th>Wage (₹)</th>
+        <th>Expenses</th>
+        <th>Remanent (₹)</th>
+        <th>NPS Real (₹)</th>
+        <th>Index Real (₹)</th>
+        <th>Tax Benefit (₹)</th>
+        <th>Yrs to 60</th>
+        <th>Response</th>
+        <th>Submitted</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let log of logs">
+        <td class="name-cell">{{ log.name }}</td>
+        <td>{{ log.age }}</td>
+        <td>{{ log.wage | number:'1.0-0' }}</td>
+        <td>{{ log.expenseCount }}</td>
+        <td>{{ log.totalRemanent | number:'1.2-2' }}</td>
+        <td class="nps-cell">{{ log.npsRealValue | number:'1.2-2' }}</td>
+        <td class="idx-cell">{{ log.indexRealValue | number:'1.2-2' }}</td>
+        <td class="tax-cell">{{ log.taxBenefit | number:'1.2-2' }}</td>
+        <td>{{ log.yearsToRetirement }}</td>
+        <td class="ms-cell">{{ log.responseTimeMs | number:'1.1-1' }} ms</td>
+        <td class="date-cell">{{ log.loggedAt | date:'MMM d, HH:mm' }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

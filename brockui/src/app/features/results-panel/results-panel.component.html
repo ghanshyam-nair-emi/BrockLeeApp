@@ -1,0 +1,141 @@
+<!-- Placeholder -->
+<div class="placeholder" *ngIf="!result && !isLoading">
+  <div class="placeholder-icon">📊</div>
+  <p>Your results would be displayed here.</p>
+  <span>Submit the form to calculate your retirement savings projection.</span>
+</div>
+
+<!-- Loading -->
+<div class="loading-state" *ngIf="isLoading">
+  <div class="loading-bar"></div>
+  <p>Computing your projection via Python engine…</p>
+</div>
+
+<!-- Results -->
+<ng-container *ngIf="result && !isLoading">
+
+  <!-- Summary cards -->
+  <div class="summary-cards">
+    <div class="card">
+      <span class="card-label">Total Expenses</span>
+      <span class="card-value">
+        ₹{{ result.nps.transactionsTotalAmount | number:'1.2-2' }}
+      </span>
+    </div>
+    <div class="card">
+      <span class="card-label">Total Ceiling</span>
+      <span class="card-value">
+        ₹{{ result.nps.transactionsTotalCeiling | number:'1.2-2' }}
+      </span>
+    </div>
+    <div class="card accent">
+      <span class="card-label">Response Time</span>
+      <span class="card-value">{{ result.responseTimeMs | number:'1.1-1' }} ms</span>
+    </div>
+  </div>
+
+  <!-- Tab switcher -->
+  <div class="tabs">
+    <button
+      class="tab"
+      [class.active]="activeTab === 'nps'"
+      (click)="setTab('nps')">
+      NPS <span class="badge">7.11%</span>
+    </button>
+    <button
+      class="tab"
+      [class.active]="activeTab === 'index'"
+      (click)="setTab('index')">
+      Index Fund <span class="badge">14.49%</span>
+    </button>
+  </div>
+
+  <!-- Totals bar -->
+  <div class="totals-bar">
+    <div class="total-item">
+      <span class="total-label">Real Value at 60</span>
+      <span class="total-value highlight">
+        ₹{{ totalRealValue(currentSavings) | number:'1.2-2' }}
+      </span>
+    </div>
+    <div class="total-item">
+      <span class="total-label">Total Profits</span>
+      <span class="total-value green">
+        ₹{{ totalProfits(currentSavings) | number:'1.2-2' }}
+      </span>
+    </div>
+    <div class="total-item" *ngIf="activeTab === 'nps'">
+      <span class="total-label">Tax Benefit (80CCD)</span>
+      <span class="total-value blue">
+        ₹{{ totalTaxBenefit(currentSavings) | number:'1.2-2' }}
+      </span>
+    </div>
+    <div class="total-item" *ngIf="prediction?.consensus">
+      <span class="total-label">
+        ML Consensus {{ activeTab === 'nps' ? 'NPS' : 'Index' }}
+      </span>
+      <span class="total-value" [class.highlight]="activeTab==='nps'" [class.green]="activeTab==='index'">
+        ₹{{ (activeTab === 'nps'
+              ? prediction!.consensus.consensusNps
+              : prediction!.consensus.consensusIndex) | number:'1.2-2' }}
+      </span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       PROJECTION CHART — the big empty red area in the screenshot
+       Shows:
+         Solid lines  = computed year-by-year compound growth (NPS + Index)
+         Dashed lines = ML consensus prediction targets (horizontal reference)
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="chart-container">
+    <div class="chart-header">
+      <span class="chart-title">
+        Retirement Growth Projection
+        <span class="chart-sub">Compound growth to age 60 vs ML prediction targets</span>
+      </span>
+      <div class="chart-legend-note" *ngIf="prediction?.consensus">
+        <span class="legend-dot solid nps"></span> NPS Computed
+        <span class="legend-dot solid idx"></span> Index Computed
+        <span class="legend-dot dashed nps"></span> ML NPS Target
+        <span class="legend-dot dashed idx"></span> ML Index Target
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas #projectionChart></canvas>
+    </div>
+  </div>
+
+  <!-- K Period table -->
+  <div class="table-section">
+    <h4 class="table-title">K-Period Breakdown</h4>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Period</th>
+            <th>Invested (₹)</th>
+            <th>Real Value (₹)</th>
+            <th>Profits (₹)</th>
+            <th *ngIf="activeTab === 'nps'">Tax Benefit (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of currentSavings">
+            <td class="period-cell">
+              {{ row.start | date:'MMM d, yyyy' }} –
+              {{ row.end   | date:'MMM d, yyyy' }}
+            </td>
+            <td>{{ row.amount | number:'1.2-2' }}</td>
+            <td class="green">{{ (row.profits + row.amount) | number:'1.2-2' }}</td>
+            <td class="green">{{ row.profits | number:'1.2-2' }}</td>
+            <td class="blue" *ngIf="activeTab === 'nps'">
+              {{ row.taxBenefit | number:'1.2-2' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</ng-container>

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="BrockLee.Tests/BrockLee.Tests.csproj" />
+  <Project Path="BrockLee/BrockLee.csproj" />
+</Solution>

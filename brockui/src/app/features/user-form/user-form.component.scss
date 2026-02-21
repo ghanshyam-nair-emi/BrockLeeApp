@@ -1,0 +1,96 @@
+.form-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.85rem;
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+
+  .hint {
+    font-weight: 400;
+    color: var(--color-muted);
+    font-size: 0.72rem;
+  }
+
+  input, textarea {
+    background:    var(--color-input-bg);
+    border:        1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color:         var(--color-text);
+    font-size:     0.82rem;
+    padding:       0.45rem 0.6rem;
+    font-family:   inherit;
+    transition:    border-color 0.15s;
+    resize:        vertical;
+
+    &:focus {
+      outline:      none;
+      border-color: var(--color-accent);
+    }
+  }
+
+  textarea {
+    font-family: 'Fira Code', 'Cascadia Code', monospace;
+    font-size:   0.75rem;
+    line-height: 1.5;
+  }
+}
+
+.error {
+  font-size:  0.72rem;
+  color:      var(--color-danger);
+  margin-top: 0.15rem;
+}
+
+.api-error {
+  background:    rgba(239, 68, 68, 0.08);
+  border:        1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  padding:       0.6rem 0.85rem;
+  font-size:     0.8rem;
+  color:         var(--color-danger);
+  margin-bottom: 1rem;
+}
+
+.btn-submit {
+  width:            100%;
+  padding:          0.65rem 1rem;
+  background:       var(--color-accent);
+  color:            #fff;
+  border:           none;
+  border-radius:    var(--radius-sm);
+  font-size:        0.85rem;
+  font-weight:      600;
+  cursor:           pointer;
+  transition:       background 0.15s, opacity 0.15s;
+  letter-spacing:   0.02em;
+
+  &:hover:not(:disabled)  { background: var(--color-accent-hover); }
+  &:disabled              { opacity: 0.55; cursor: not-allowed; }
+}
+
+.spinner { animation: pulse 1s ease infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}

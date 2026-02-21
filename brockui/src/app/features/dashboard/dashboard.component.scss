@@ -1,0 +1,177 @@
+.dashboard {
+  min-height:     100vh;
+  background:     var(--color-bg);
+  padding:        1rem 1.25rem 2rem;
+  display:        flex;
+  flex-direction: column;
+  gap:            1rem;
+  max-width:      1600px;
+  margin:         0 auto;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+.dashboard-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  padding:         0.6rem 0;
+  border-bottom:   1px solid var(--color-border);
+}
+
+.header-left {
+  display:     flex;
+  align-items: baseline;
+  gap:         0.6rem;
+}
+
+.logo {
+  font-size:   1.25rem;
+  font-weight: 700;
+  color:       var(--color-accent);
+  letter-spacing: -0.02em;
+}
+
+.logo-sub {
+  font-size:  0.75rem;
+  color:      var(--color-muted);
+  font-weight: 400;
+}
+
+.header-right {
+  display:     flex;
+  align-items: center;
+  gap:         0.4rem;
+}
+
+.signalr-dot {
+  width:         8px;
+  height:        8px;
+  border-radius: 50%;
+  background:    var(--color-muted);
+  transition:    background 0.3s;
+
+  &.connected {
+    background: var(--color-success);
+    animation:  blink 2s ease infinite;
+  }
+}
+
+.signalr-label {
+  font-size:  0.72rem;
+  color:      var(--color-muted);
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+// ── Rows ──────────────────────────────────────────────────────────────────────
+
+.row { display: flex; gap: 1rem; }
+
+.row-top {
+  display:               grid;
+  grid-template-columns: 380px 1fr;
+  gap:                   1rem;
+  align-items:           start;
+}
+
+.row-predictions,
+.row-logs {
+  flex-direction: column;
+}
+
+// ── Panels ────────────────────────────────────────────────────────────────────
+
+.panel {
+  background:    var(--color-surface);
+  border:        1px solid var(--color-border);
+  border-radius: var(--radius);
+  display:       flex;
+  flex-direction:column;
+  overflow:      hidden;
+}
+
+.panel-header {
+  padding:         0.65rem 1rem;
+  border-bottom:   1px solid var(--color-border);
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  flex-wrap:       wrap;
+  gap:             0.4rem;
+
+  h2 {
+    font-size:   0.85rem;
+    font-weight: 600;
+    color:       var(--color-text);
+    margin:      0;
+  }
+
+  .panel-sub {
+    font-size:  0.72rem;
+    color:      var(--color-muted);
+
+    &.success { color: var(--color-success); }
+    &.error   { color: var(--color-danger);  }
+  }
+}
+
+.panel-header-actions {
+  display:     flex;
+  align-items: center;
+  gap:         0.75rem;
+}
+
+.panel-body {
+  padding:  0.85rem 1rem;
+  flex:     1;
+  overflow: hidden;
+}
+
+.panel-body-scroll {
+  overflow-x: auto;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+// ── Buttons ───────────────────────────────────────────────────────────────────
+
+.btn-refresh {
+  padding:       0.28rem 0.75rem;
+  border:        1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background:    transparent;
+  color:         var(--color-text-secondary);
+  font-size:     0.75rem;
+  cursor:        pointer;
+  transition:    all 0.15s;
+
+  &:hover:not(:disabled) {
+    background:   var(--color-accent);
+    color:        #fff;
+    border-color: var(--color-accent);
+  }
+
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+// ── Pulse text ────────────────────────────────────────────────────────────────
+
+.pulse-text {
+  animation: text-pulse 1.2s ease infinite;
+  color:     var(--color-accent);
+}
+
+@keyframes text-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────────
+
+@media (max-width: 900px) {
+  .row-top { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,24 @@
+{
+  "/blackrock": {
+    "target":       "http://localhost:5035",
+    "secure":       false,
+    "logLevel":     "info",
+    "changeOrigin": false
+  },
+  "/hubs": {
+    "target":    "http://localhost:5035",
+    "secure":    false,
+    "logLevel":  "info",
+    "ws":        true
+  },
+  "/health": {
+    "target":    "http://localhost:5035",
+    "secure":    false,
+    "logLevel":  "info"
+  },
+  "/scalar": {
+    "target":    "http://localhost:5035",
+    "secure":    false,
+    "logLevel":  "info"
+  }
+}

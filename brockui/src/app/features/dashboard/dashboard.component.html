@@ -1,0 +1,112 @@
+<div class="dashboard">
+
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-left">
+      <span class="logo">BrockLee</span>
+      <span class="logo-sub">Auto-Savings Retirement Planner</span>
+    </div>
+    <div class="header-right">
+      <span
+        class="signalr-dot"
+        [class.connected]="signalR.connected"
+        [title]="signalR.connected ? 'Live connection active' : 'No live connection'">
+      </span>
+      <span class="signalr-label">{{ signalR.connected ? 'Live' : 'Offline' }}</span>
+    </div>
+  </header>
+
+  <!-- Row 1: Form + Results -->
+  <div class="row row-top">
+
+    <!-- Left: User Form -->
+    <section class="panel panel-form">
+      <div class="panel-header">
+        <h2>User Details</h2>
+        <span class="panel-sub">Input Form</span>
+      </div>
+      <div class="panel-body">
+        <app-user-form
+          (submitted)="onFormSubmitted($event)"
+          (loading)="onFormLoading($event)">
+        </app-user-form>
+      </div>
+    </section>
+
+    <!-- Right: Results + Chart -->
+    <section class="panel panel-results">
+      <div class="panel-header">
+        <h2>Retirement Projection</h2>
+        <span class="panel-sub" *ngIf="submitState === 'idle'">
+          Results will appear after you submit
+        </span>
+        <span class="panel-sub success" *ngIf="submitState === 'success'">
+          ✓ Computed successfully
+        </span>
+        <span class="panel-sub error" *ngIf="submitState === 'error'">
+          ✗ Computation failed
+        </span>
+      </div>
+      <div class="panel-body">
+        <!-- prediction passed so chart can overlay ML consensus lines -->
+        <app-results-panel
+          [result]="result"
+          [prediction]="prediction"
+          [isLoading]="isFormLoading">
+        </app-results-panel>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Row 2: ML Predictions -->
+  <div class="row row-predictions">
+    <section class="panel panel-predictions">
+      <div class="panel-header">
+        <h2>AI Prediction Metrics</h2>
+        <span class="panel-sub" [ngSwitch]="predictState">
+          <ng-container *ngSwitchCase="'idle'">Comparative graph of 5 ML models</ng-container>
+          <ng-container *ngSwitchCase="'waiting'">
+            <span class="pulse-text">Running 5 models via queue…</span>
+          </ng-container>
+          <ng-container *ngSwitchCase="'received'">
+            ✓ {{ prediction?.consensus?.bestModel }} is the best fit
+          </ng-container>
+          <ng-container *ngSwitchCase="'error'">ML service unavailable</ng-container>
+        </span>
+      </div>
+      <div class="panel-body">
+        <app-prediction-panel
+          [prediction]="prediction"
+          [predictState]="predictState">
+        </app-prediction-panel>
+      </div>
+    </section>
+  </div>
+
+  <!-- Row 3: Log Table -->
+  <div class="row row-logs">
+    <section class="panel panel-logs">
+      <div class="panel-header">
+        <h2>Public Submission Log</h2>
+        <div class="panel-header-actions">
+          <span class="panel-sub">Last 50 submissions — updates in real-time</span>
+          <button
+            class="btn-refresh"
+            (click)="refreshLogs()"
+            [disabled]="isLogRefreshing">
+            {{ isLogRefreshing ? 'Refreshing…' : '↺ Refresh' }}
+          </button>
+        </div>
+      </div>
+      <div class="panel-body panel-body-scroll">
+        <app-log-table
+          [logs]="logs"
+          [metrics]="metrics"
+          [isRefreshing]="isLogRefreshing">
+        </app-log-table>
+      </div>
+    </section>
+  </div>
+
+</div>

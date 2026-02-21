@@ -1,0 +1,119 @@
+<!-- Idle placeholder -->
+<div class="placeholder" *ngIf="predictState === 'idle'">
+  <div class="placeholder-icon">🤖</div>
+  <p>Prediction metrics would be displayed here.</p>
+  <span>Submit the form — 5 ML models will compare and predict your retirement value.</span>
+</div>
+
+<!-- Waiting for async result via SignalR -->
+<div class="waiting-state" *ngIf="predictState === 'waiting'">
+  <div class="pulse-ring"></div>
+  <p>ML models running…</p>
+  <span>Gradient Boosting · Random Forest · Ridge · Polynomial · Linear</span>
+  <small>Results will arrive automatically via real-time connection.</small>
+</div>
+
+<!-- Error -->
+<div class="error-state" *ngIf="predictState === 'error'">
+  <span>⚠ Prediction service unavailable. Compute results are still valid above.</span>
+</div>
+
+<!-- FIX: guard with both predictState AND prediction?.consensus
+     Previously: *ngIf="predictState === 'received' && prediction"
+     Problem:    prediction object can arrive with consensus undefined
+     Fix:        also check prediction?.consensus explicitly             -->
+<ng-container *ngIf="predictState === 'received' && prediction && prediction.consensus">
+
+  <!-- Consensus header -->
+  <div class="consensus-bar">
+    <div class="consensus-left">
+      <span class="consensus-label">Best Model</span>
+      <!-- FIX: optional chaining on every consensus access -->
+      <span class="consensus-model">{{ prediction.consensus?.bestModel }}</span>
+    </div>
+    <div class="consensus-center">
+      <span class="consensus-label">Model Agreement</span>
+      <span
+        class="badge"
+        [ngClass]="agreementClass(prediction.consensus?.modelAgreement ?? 'LOW')">
+        {{ prediction.consensus?.modelAgreement ?? '—' }}
+      </span>
+    </div>
+    <div class="consensus-right">
+      <span class="consensus-label">Consensus NPS</span>
+      <span class="consensus-value">
+        ₹{{ (prediction.consensus?.consensusNps ?? 0) | number:'1.0-0' }}
+      </span>
+    </div>
+    <div class="consensus-right">
+      <span class="consensus-label">Consensus Index</span>
+      <span class="consensus-value green">
+        ₹{{ (prediction.consensus?.consensusIndex ?? 0) | number:'1.0-0' }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Metric toggle -->
+  <div class="metric-tabs">
+    <button class="mtab" [class.active]="activeMetric==='nps'"   (click)="setMetric('nps')">NPS</button>
+    <button class="mtab" [class.active]="activeMetric==='index'" (click)="setMetric('index')">Index Fund</button>
+  </div>
+
+  <!-- Model comparison bars — guard each model's nps/index sub-objects -->
+  <div class="model-bars">
+    <div
+      class="model-row"
+      *ngFor="let model of models"
+      [class.best]="isBestModel(model)">
+
+      <div class="model-meta">
+        <span class="model-short">{{ model.shortName }}</span>
+        <span class="model-name">{{ model.modelName }}</span>
+        <span class="best-badge" *ngIf="isBestModel(model)">★ Best</span>
+      </div>
+
+      <div class="model-bar-wrap">
+        <div class="model-bar" [style.width.%]="barWidth(model)"></div>
+      </div>
+
+      <div class="model-stats">
+        <span class="pred-value">
+          ₹{{ predictedValue(model) | number:'1.0-0' }}
+        </span>
+        <span class="conf" [ngClass]="confidenceClass(confidence(model))">
+          {{ confidence(model) | number:'1.0-1' }}% conf
+        </span>
+        <span class="r2">R²={{ r2(model) | number:'1.4-4' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Std Dev note -->
+  <div class="spread-note">
+    <span>
+      NPS spread: ±₹{{ (prediction.consensus?.npsStdDev ?? 0) | number:'1.0-0' }}
+      &nbsp;|&nbsp;
+      Index spread: ±₹{{ (prediction.consensus?.indexStdDev ?? 0) | number:'1.0-0' }}
+    </span>
+  </div>
+
+  <!-- Feature importance -->
+  <div class="feature-section" *ngIf="sortedFeatures.length > 0">
+    <h4 class="feature-title">
+      Feature Importance <span class="fi-note">(Random Forest)</span>
+    </h4>
+    <div class="feature-bars">
+      <div class="feature-row" *ngFor="let f of sortedFeatures">
+        <span class="feature-name">{{ f.feature }}</span>
+        <div class="feature-bar-wrap">
+          <div
+            class="feature-bar"
+            [style.width.%]="(f.importance / maxImportance) * 100">
+          </div>
+        </div>
+        <span class="feature-val">{{ f.importance | number:'1.4-4' }}</span>
+      </div>
+    </div>
+  </div>
+
+</ng-container>

@@ -1,0 +1,1128 @@
+{
+  "info": {
+    "name": "BrockLee — Auto-Savings API",
+    "description": "Complete test suite for BrockLee Auto-Savings Retirement API.\n\nBase URL: http://localhost:5477\n\nTest Order:\n1. Health Check\n2. Transactions: Parse\n3. Transactions: Validator\n4. Transactions: Filter\n5. Returns: NPS\n6. Returns: Index\n7. Returns: Compute (used by Angular UI)\n8. Logs\n9. Performance\n\nRun via:\n  Collection Runner (in order)\n  OR: newman run BrockLee.postman_collection.json",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5477",
+      "type": "string"
+    },
+    {
+      "key": "apiBase",
+      "value": "{{baseUrl}}/blackrock/challenge/v1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🟢 Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has status field', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('status');",
+                  "  pm.expect(body.status).to.eql('healthy');",
+                  "});",
+                  "",
+                  "pm.test('Response has timestamp', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('timestamp');",
+                  "});",
+                  "",
+                  "pm.test('Response has mode field', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('mode');",
+                  "  pm.expect(['full-stack', 'api-only']).to.include(body.mode);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 500ms', () => {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Transactions: Parse",
+      "item": [
+        {
+          "name": "Parse — Challenge Example (Happy Path)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Returns 4 transactions', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.transactions).to.have.lengthOf(4);",
+                  "});",
+                  "",
+                  "pm.test('Total remanent = 175 (challenge spec)', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.totalRemanent).to.eql(175);",
+                  "});",
+                  "",
+                  "pm.test('Total ceiling = 2000', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.totalCeiling).to.eql(2000);",
+                  "});",
+                  "",
+                  "pm.test('Total expense = 1725', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.totalExpense).to.eql(1725);",
+                  "});",
+                  "",
+                  "pm.test('Expense 250 → ceiling 300, remanent 50', () => {",
+                  "  const body = pm.response.json();",
+                  "  const tx = body.transactions.find(t => t.amount === 250);",
+                  "  pm.expect(tx).to.not.be.undefined;",
+                  "  pm.expect(tx.ceiling).to.eql(300);",
+                  "  pm.expect(tx.remanent).to.eql(50);",
+                  "});",
+                  "",
+                  "pm.test('Expense 375 → ceiling 400, remanent 25', () => {",
+                  "  const body = pm.response.json();",
+                  "  const tx = body.transactions.find(t => t.amount === 375);",
+                  "  pm.expect(tx.ceiling).to.eql(400);",
+                  "  pm.expect(tx.remanent).to.eql(25);",
+                  "});",
+                  "",
+                  "pm.test('Expense 620 → ceiling 700, remanent 80', () => {",
+                  "  const body = pm.response.json();",
+                  "  const tx = body.transactions.find(t => t.amount === 620);",
+                  "  pm.expect(tx.ceiling).to.eql(700);",
+                  "  pm.expect(tx.remanent).to.eql(80);",
+                  "});",
+                  "",
+                  "pm.test('Expense 480 → ceiling 500, remanent 20', () => {",
+                  "  const body = pm.response.json();",
+                  "  const tx = body.transactions.find(t => t.amount === 480);",
+                  "  pm.expect(tx.ceiling).to.eql(500);",
+                  "  pm.expect(tx.remanent).to.eql(20);",
+                  "});",
+                  "",
+                  "// Store parsed transactions for downstream tests",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('parsedTransactions', JSON.stringify(body.transactions));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:parse",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expenses\": [\n    { \"date\": \"2023-10-12T20:15:00\", \"amount\": 250 },\n    { \"date\": \"2023-02-28T15:49:00\", \"amount\": 375 },\n    { \"date\": \"2023-07-01T21:59:00\", \"amount\": 620 },\n    { \"date\": \"2023-12-17T08:09:00\", \"amount\": 480 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Parse — Amount Already Multiple of 100",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Amount 200 → ceiling 200, remanent 0', () => {",
+                  "  const body = pm.response.json();",
+                  "  const tx = body.transactions[0];",
+                  "  pm.expect(tx.ceiling).to.eql(200);",
+                  "  pm.expect(tx.remanent).to.eql(0);",
+                  "});",
+                  "",
+                  "pm.test('Total remanent = 0', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.totalRemanent).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:parse",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expenses\": [\n    { \"date\": \"2023-06-15T10:00:00\", \"amount\": 200 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Parse — Spec Example 1519 → 1600",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Amount 1519 → ceiling 1600, remanent 81', () => {",
+                  "  const body = pm.response.json();",
+                  "  const tx = body.transactions[0];",
+                  "  pm.expect(tx.ceiling).to.eql(1600);",
+                  "  pm.expect(tx.remanent).to.eql(81);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:parse",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expenses\": [\n    { \"date\": \"2023-10-01T20:15:00\", \"amount\": 1519 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Parse — Empty Expenses (Expect 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 for empty expenses', () => {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response has message field', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:parse",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expenses\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "Parse — Large Input (Performance)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate 1000 expenses dynamically",
+                  "const expenses = [];",
+                  "const baseDate = new Date('2023-01-01T00:00:00');",
+                  "for (let i = 0; i < 1000; i++) {",
+                  "  const d = new Date(baseDate.getTime() + i * 60000);",
+                  "  expenses.push({",
+                  "    date: d.toISOString().replace('Z',''),",
+                  "    amount: Math.floor(Math.random() * 49900) + 100",
+                  "  });",
+                  "}",
+                  "pm.collectionVariables.set('largeExpenses', JSON.stringify(expenses));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Returns 1000 transactions', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.transactions).to.have.lengthOf(1000);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 2000ms for 1000 expenses', () => {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:parse",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"expenses\": {{largeExpenses}}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "✅ Transactions: Validator",
+      "item": [
+        {
+          "name": "Validator — Valid Transactions (Happy Path)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('All 4 transactions are valid', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.valid).to.have.lengthOf(4);",
+                  "  pm.expect(body.invalid).to.have.lengthOf(0);",
+                  "  pm.expect(body.duplicates).to.have.lengthOf(0);",
+                  "});",
+                  "",
+                  "pm.test('Valid transactions have required fields', () => {",
+                  "  const body = pm.response.json();",
+                  "  body.valid.forEach(tx => {",
+                  "    pm.expect(tx).to.have.property('date');",
+                  "    pm.expect(tx).to.have.property('amount');",
+                  "    pm.expect(tx).to.have.property('ceiling');",
+                  "    pm.expect(tx).to.have.property('remanent');",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:validator",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"wage\": 50000,\n  \"transactions\": [\n    { \"date\": \"2023-10-12T20:15:00\", \"amount\": 250, \"ceiling\": 300, \"remanent\": 50 },\n    { \"date\": \"2023-02-28T15:49:00\", \"amount\": 375, \"ceiling\": 400, \"remanent\": 25 },\n    { \"date\": \"2023-07-01T21:59:00\", \"amount\": 620, \"ceiling\": 700, \"remanent\": 80 },\n    { \"date\": \"2023-12-17T08:09:00\", \"amount\": 480, \"ceiling\": 500, \"remanent\": 20 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Validator — Duplicate Timestamps (Expect Duplicates)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('One duplicate detected', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.duplicates).to.have.lengthOf(1);",
+                  "});",
+                  "",
+                  "pm.test('Duplicate has message field', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.duplicates[0]).to.have.property('message');",
+                  "  pm.expect(body.duplicates[0].message.toLowerCase()).to.include('duplicate');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:validator",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"wage\": 50000,\n  \"transactions\": [\n    { \"date\": \"2023-01-01T10:00:00\", \"amount\": 250, \"ceiling\": 300, \"remanent\": 50 },\n    { \"date\": \"2023-01-01T10:00:00\", \"amount\": 300, \"ceiling\": 400, \"remanent\": 100 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Validator — Invalid Amount (>= 500000)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Transaction flagged as invalid', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.invalid).to.have.lengthOf(1);",
+                  "  pm.expect(body.valid).to.have.lengthOf(0);",
+                  "});",
+                  "",
+                  "pm.test('Invalid message mentions range', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.invalid[0].message.toLowerCase()).to.include('range');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:validator",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"wage\": 50000,\n  \"transactions\": [\n    { \"date\": \"2023-01-01T10:00:00\", \"amount\": 500000, \"ceiling\": 500000, \"remanent\": 0 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Validator — Zero Wage (Expect 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 for zero wage', () => {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response has message', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:validator",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"wage\": 0,\n  \"transactions\": [\n    { \"date\": \"2023-01-01T10:00:00\", \"amount\": 250, \"ceiling\": 300, \"remanent\": 50 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Validator — Incorrect Ceiling (Expect Invalid)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Transaction with wrong ceiling is invalid', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.invalid).to.have.lengthOf(1);",
+                  "  pm.expect(body.invalid[0].message.toLowerCase()).to.include('ceiling');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:validator",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"wage\": 50000,\n  \"transactions\": [\n    { \"date\": \"2023-01-01T10:00:00\", \"amount\": 250, \"ceiling\": 400, \"remanent\": 150 }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔀 Transactions: Filter",
+      "item": [
+        {
+          "name": "Filter — Challenge Example (Q + P + K)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Returns valid transactions', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.valid).to.have.lengthOf(4);",
+                  "});",
+                  "",
+                  "pm.test('July transaction remanent = 0 (Q period applied)', () => {",
+                  "  const body = pm.response.json();",
+                  "  const julyTx = body.valid.find(t => t.date.startsWith('2023-07'));",
+                  "  pm.expect(julyTx).to.not.be.undefined;",
+                  "  pm.expect(julyTx.remanent).to.eql(0);",
+                  "});",
+                  "",
+                  "pm.test('Oct transaction remanent = 75 (P period adds 25)', () => {",
+                  "  const body = pm.response.json();",
+                  "  const octTx = body.valid.find(t => t.date.startsWith('2023-10'));",
+                  "  pm.expect(octTx.remanent).to.eql(75);",
+                  "});",
+                  "",
+                  "pm.test('Dec transaction remanent = 45 (P period adds 25)', () => {",
+                  "  const body = pm.response.json();",
+                  "  const decTx = body.valid.find(t => t.date.startsWith('2023-12'));",
+                  "  pm.expect(decTx.remanent).to.eql(45);",
+                  "});",
+                  "",
+                  "pm.test('Feb transaction remanent = 25 (no Q or P applied)', () => {",
+                  "  const body = pm.response.json();",
+                  "  const febTx = body.valid.find(t => t.date.startsWith('2023-02'));",
+                  "  pm.expect(febTx.remanent).to.eql(25);",
+                  "});",
+                  "",
+                  "pm.test('K group Mar-Nov sum = 75', () => {",
+                  "  const body = pm.response.json();",
+                  "  const marNov = body.kGroups.find(g =>",
+                  "    g.start.startsWith('2023-03') && g.end.startsWith('2023-11'));",
+                  "  pm.expect(marNov).to.not.be.undefined;",
+                  "  pm.expect(marNov.amount).to.eql(75);",
+                  "});",
+                  "",
+                  "pm.test('K group full year sum = 145', () => {",
+                  "  const body = pm.response.json();",
+                  "  const fullYear = body.kGroups.find(g =>",
+                  "    g.start.startsWith('2023-01') && g.end.startsWith('2023-12'));",
+                  "  pm.expect(fullYear).to.not.be.undefined;",
+                  "  pm.expect(fullYear.amount).to.eql(145);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:filter",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transactions\": [\n    { \"date\": \"2023-10-12T20:15:00\", \"amount\": 250, \"ceiling\": 300, \"remanent\": 50 },\n    { \"date\": \"2023-02-28T15:49:00\", \"amount\": 375, \"ceiling\": 400, \"remanent\": 25 },\n    { \"date\": \"2023-07-01T21:59:00\", \"amount\": 620, \"ceiling\": 700, \"remanent\": 80 },\n    { \"date\": \"2023-12-17T08:09:00\", \"amount\": 480, \"ceiling\": 500, \"remanent\": 20 }\n  ],\n  \"q\": [\n    { \"fixed\": 0, \"start\": \"2023-07-01T00:00:00\", \"end\": \"2023-07-31T23:59:59\" }\n  ],\n  \"p\": [\n    { \"extra\": 25, \"start\": \"2023-10-01T08:00:00\", \"end\": \"2023-12-31T19:59:00\" }\n  ],\n  \"k\": [\n    { \"start\": \"2023-03-01T00:00:00\", \"end\": \"2023-11-30T23:59:59\" },\n    { \"start\": \"2023-01-01T00:00:00\", \"end\": \"2023-12-31T23:59:59\" }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Filter — Q Tie-Break (Latest Start Wins)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Latest-start Q period wins → remanent = 99', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.valid[0].remanent).to.eql(99);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:filter",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transactions\": [\n    { \"date\": \"2023-06-15T12:00:00\", \"amount\": 500, \"ceiling\": 600, \"remanent\": 100 }\n  ],\n  \"q\": [\n    { \"fixed\": 10, \"start\": \"2023-06-01T00:00:00\", \"end\": \"2023-06-30T23:59:59\" },\n    { \"fixed\": 99, \"start\": \"2023-06-10T00:00:00\", \"end\": \"2023-06-30T23:59:59\" }\n  ],\n  \"p\": [],\n  \"k\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "Filter — Q Tie-Break Same Start (First in List Wins)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Same-start tie → first in list wins → remanent = 10', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.valid[0].remanent).to.eql(10);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:filter",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transactions\": [\n    { \"date\": \"2023-06-15T12:00:00\", \"amount\": 500, \"ceiling\": 600, \"remanent\": 100 }\n  ],\n  \"q\": [\n    { \"fixed\": 10, \"start\": \"2023-06-01T00:00:00\", \"end\": \"2023-06-30T23:59:59\" },\n    { \"fixed\": 99, \"start\": \"2023-06-01T00:00:00\", \"end\": \"2023-06-30T23:59:59\" }\n  ],\n  \"p\": [],\n  \"k\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "Filter — P Multiple Periods (All Extras Summed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Both P extras summed → remanent = 80 (50 + 10 + 20)', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.valid[0].remanent).to.eql(80);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:filter",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transactions\": [\n    { \"date\": \"2023-06-15T12:00:00\", \"amount\": 250, \"ceiling\": 300, \"remanent\": 50 }\n  ],\n  \"q\": [],\n  \"p\": [\n    { \"extra\": 10, \"start\": \"2023-06-01T00:00:00\", \"end\": \"2023-06-30T23:59:59\" },\n    { \"extra\": 20, \"start\": \"2023-06-01T00:00:00\", \"end\": \"2023-06-30T23:59:59\" }\n  ],\n  \"k\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "Filter — Q then P Applied Together",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Q sets remanent to 0, P adds 25 → final remanent = 25', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.valid[0].remanent).to.eql(25);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/transactions:filter",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transactions\": [\n    { \"date\": \"2023-07-15T12:00:00\", \"amount\": 620, \"ceiling\": 700, \"remanent\": 80 }\n  ],\n  \"q\": [\n    { \"fixed\": 0, \"start\": \"2023-07-01T00:00:00\", \"end\": \"2023-07-31T23:59:59\" }\n  ],\n  \"p\": [\n    { \"extra\": 25, \"start\": \"2023-07-01T00:00:00\", \"end\": \"2023-07-31T23:59:59\" }\n  ],\n  \"k\": []\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📈 Returns: NPS",
+      "item": [
+        {
+          "name": "NPS — Challenge Example (Age 29, Wage 50000)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has required fields', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('transactionsTotalAmount');",
+                  "  pm.expect(body).to.have.property('transactionsTotalCeiling');",
+                  "  pm.expect(body).to.have.property('savingsByDates');",
+                  "});",
+                  "",
+                  "pm.test('savingsByDates has 2 entries (2 k periods)', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.savingsByDates).to.have.lengthOf(2);",
+                  "});",
+                  "",
+                  "pm.test('Full year k-period amount = 145 (challenge spec)', () => {",
+                  "  const body = pm.response.json();",
+                  "  const fullYear = body.savingsByDates.find(s =>",
+                  "    s.start.startsWith('2023-01'));",
+                  "  pm.expect(fullYear.amount).to.eql(145);",
+                  "});",
+                  "",
+                  "pm.test('NPS profits are positive', () => {",
+                  "  const body = pm.response.json();",
+                  "  body.savingsByDates.forEach(s => {",
+                  "    pm.expect(s.profits).to.be.at.least(0);",
+                  "  });",
+                  "});",
+                  "",
+                  "pm.test('Tax benefit = 0 (income 6L is below 7L slab)', () => {",
+                  "  const body = pm.response.json();",
+                  "  const fullYear = body.savingsByDates.find(s =>",
+                  "    s.start.startsWith('2023-01'));",
+                  "  pm.expect(fullYear.taxBenefit).to.eql(0);",
+                  "});",
+                  "",
+                  "pm.test('NPS real value ≈ 231.9 (challenge spec ±10)', () => {",
+                  "  const body = pm.response.json();",
+                  "  const fullYear = body.savingsByDates.find(s =>",
+                  "    s.start.startsWith('2023-01'));",
+                  "  // profits = realValue - amount → realValue = profits + amount",
+                  "  const realValue = fullYear.profits + fullYear.amount;",
+                  "  pm.expect(realValue).to.be.within(220, 245);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/returns:nps",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"age\": 29,\n  \"wage\": 50000,\n  \"inflation\": 0.055,\n  \"transactions\": [\n    { \"date\": \"2023-10-12T20:15:00\", \"amount\": 250, \"ceiling\": 300, \"remanent\": 50 },\n    { \"date\": \"2023-02-28T15:49:00\", \"amount\": 375, \"ceiling\": 400, \"remanent\": 25 },\n    { \"date\": \"2023-07-01T21:59:00\", \"amount\": 620, \"ceiling\": 700, \"remanent\": 80 },\n    { \"date\": \"2023-12-17T08:09:00\", \"amount\": 480, \"ceiling\": 500, \"remanent\": 20 }\n  ],\n  \"q\": [\n    { \"fixed\": 0, \"start\": \"2023-07-01T00:00:00\", \"end\": \"2023-07-31T23:59:59\" }\n  ],\n  \"p\": [\n    { \"extra\": 25, \"start\": \"2023-10-01T08:00:00\", \"end\": \"2023-12-31T19:59:00\" }\n  ],\n  \"k\": [\n    { \"start\": \"2023-03-01T00:00:00\", \"end\": \"2023-11-30T23:59:59\" },\n    { \"start\": \"2023-01-01T00:00:00\", \"end\": \"2023-12-31T23:59:59\" }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "NPS — High Income (Tax Benefit > 0)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Tax benefit > 0 for high income', () => {",
+                  "  const body = pm.response.json();",
+                  "  const fullYear = body.savingsByDates[0];",
+                  "  pm.expect(fullYear.taxBenefit).to.be.above(0,",
+                  "    'Income above 7L should generate NPS tax benefit');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/returns:nps",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"High Income User\",\n  \"age\": 35,\n  \"wage\": 150000,\n  \"inflation\": 0.055,\n  \"transactions\": [\n    { \"date\": \"2023-06-15T10:00:00\", \"amount\": 1519, \"ceiling\": 1600, \"remanent\": 81 }\n  ],\n  \"q\": [],\n  \"p\": [],\n  \"k\": [\n    { \"start\": \"2023-01-01T00:00:00\", \"end\": \"2023-12-31T23:59:59\" }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "NPS — Age >= 60 (Min 5 Year Horizon)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Profits exist (5-year min horizon applied)', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.savingsByDates[0].profits).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/returns:nps",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Senior User\",\n  \"age\": 58,\n  \"wage\": 80000,\n  \"inflation\": 0.055,\n  \"transactions\": [\n    { \"date\": \"2023-06-15T10:00:00\", \"amount\": 250, \"ceiling\": 300, \"remanent\": 50 }\n  ],\n  \"q\": [],\n  \"p\": [],\n  \"k\": [\n    { \"start\": \"2023-01-01T00:00:00\", \"end\": \"2023-12-31T23:59:59\" }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Returns: Index Fund",
+      "item": [
+        {
+          "name": "Index — Challenge Example (Age 29, Wage 50000)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Tax benefit always 0 for index fund', () => {",
+                  "  const body = pm.response.json();",
+                  "  body.savingsByDates.forEach(s => {",
+                  "    pm.expect(s.taxBenefit).to.eql(0,",
+                  "      'Index fund never has tax benefit');",
+                  "  });",
+                  "});",
+                  "",
+                  "pm.test('Index profits > NPS profits (higher rate 14.49% vs 7.11%)', () => {",
+                  "  const body = pm.response.json();",
+                  "  const fullYear = body.savingsByDates.find(s =>",
+                  "    s.start.startsWith('2023-01'));",
+                  "  // Index real value ≈ 1829.5, profits ≈ 1684.5",
+                  "  pm.expect(fullYear.profits).to.be.above(100);",
+                  "});",
+                  "",
+                  "pm.test('Index real value ≈ 1829.5 (challenge spec ±50)', () => {",
+                  "  const body = pm.response.json();",
+                  "  const fullYear = body.savingsByDates.find(s =>",
+                  "    s.start.startsWith('2023-01'));",
+                  "  const realValue = fullYear.profits + fullYear.amount;",
+                  "  pm.expect(realValue).to.be.within(1750, 1900);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/returns:index",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"age\": 29,\n  \"wage\": 50000,\n  \"inflation\": 0.055,\n  \"transactions\": [\n    { \"date\": \"2023-10-12T20:15:00\", \"amount\": 250, \"ceiling\": 300, \"remanent\": 50 },\n    { \"date\": \"2023-02-28T15:49:00\", \"amount\": 375, \"ceiling\": 400, \"remanent\": 25 },\n    { \"date\": \"2023-07-01T21:59:00\", \"amount\": 620, \"ceiling\": 700, \"remanent\": 80 },\n    { \"date\": \"2023-12-17T08:09:00\", \"amount\": 480, \"ceiling\": 500, \"remanent\": 20 }\n  ],\n  \"q\": [\n    { \"fixed\": 0, \"start\": \"2023-07-01T00:00:00\", \"end\": \"2023-07-31T23:59:59\" }\n  ],\n  \"p\": [\n    { \"extra\": 25, \"start\": \"2023-10-01T08:00:00\", \"end\": \"2023-12-31T19:59:00\" }\n  ],\n  \"k\": [\n    { \"start\": \"2023-03-01T00:00:00\", \"end\": \"2023-11-30T23:59:59\" },\n    { \"start\": \"2023-01-01T00:00:00\", \"end\": \"2023-12-31T23:59:59\" }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔄 Returns: Compute (Both)",
+      "item": [
+        {
+          "name": "Compute — Challenge Example (NPS + Index in One Call)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has nps and index fields', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('nps');",
+                  "  pm.expect(body).to.have.property('index');",
+                  "  pm.expect(body).to.have.property('responseTimeMs');",
+                  "});",
+                  "",
+                  "pm.test('NPS savingsByDates has entries', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.nps.savingsByDates.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Index savingsByDates has entries', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.index.savingsByDates.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Index profits > NPS profits (higher rate)', () => {",
+                  "  const body = pm.response.json();",
+                  "  const npsFullYear   = body.nps.savingsByDates.find(s => s.start.startsWith('2023-01'));",
+                  "  const indexFullYear = body.index.savingsByDates.find(s => s.start.startsWith('2023-01'));",
+                  "  pm.expect(indexFullYear.profits).to.be.above(npsFullYear.profits);",
+                  "});",
+                  "",
+                  "pm.test('Response time is recorded', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.responseTimeMs).to.be.above(0);",
+                  "});",
+                  "",
+                  "// Store for log verification",
+                  "pm.collectionVariables.set('lastComputeName', 'Postman Test User');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/returns:compute",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Test User\",\n  \"age\": 29,\n  \"wage\": 50000,\n  \"inflation\": 0.055,\n  \"transactions\": [\n    { \"date\": \"2023-10-12T20:15:00\", \"amount\": 250, \"ceiling\": 300, \"remanent\": 50 },\n    { \"date\": \"2023-02-28T15:49:00\", \"amount\": 375, \"ceiling\": 400, \"remanent\": 25 },\n    { \"date\": \"2023-07-01T21:59:00\", \"amount\": 620, \"ceiling\": 700, \"remanent\": 80 },\n    { \"date\": \"2023-12-17T08:09:00\", \"amount\": 480, \"ceiling\": 500, \"remanent\": 20 }\n  ],\n  \"q\": [\n    { \"fixed\": 0, \"start\": \"2023-07-01T00:00:00\", \"end\": \"2023-07-31T23:59:59\" }\n  ],\n  \"p\": [\n    { \"extra\": 25, \"start\": \"2023-10-01T08:00:00\", \"end\": \"2023-12-31T19:59:00\" }\n  ],\n  \"k\": [\n    { \"start\": \"2023-03-01T00:00:00\", \"end\": \"2023-11-30T23:59:59\" },\n    { \"start\": \"2023-01-01T00:00:00\", \"end\": \"2023-12-31T23:59:59\" }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Compute — Missing Name (Expect 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 when name is missing', () => {",
+                  "  pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{apiBase}}/returns:compute",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"age\": 29,\n  \"wage\": 50000,\n  \"inflation\": 0.055,\n  \"transactions\": [\n    { \"date\": \"2023-06-15T10:00:00\", \"amount\": 250, \"ceiling\": 300, \"remanent\": 50 }\n  ],\n  \"q\": [], \"p\": [],\n  \"k\": [{ \"start\": \"2023-01-01T00:00:00\", \"end\": \"2023-12-31T23:59:59\" }]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 Logs",
+      "item": [
+        {
+          "name": "Logs — Get Latest (Default 50)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Each log entry has required fields', () => {",
+                  "  const body = pm.response.json();",
+                  "  if (body.length > 0) {",
+                  "    const entry = body[0];",
+                  "    pm.expect(entry).to.have.property('id');",
+                  "    pm.expect(entry).to.have.property('name');",
+                  "    pm.expect(entry).to.have.property('age');",
+                  "    pm.expect(entry).to.have.property('wage');",
+                  "    pm.expect(entry).to.have.property('totalRemanent');",
+                  "    pm.expect(entry).to.have.property('npsRealValue');",
+                  "    pm.expect(entry).to.have.property('indexRealValue');",
+                  "    pm.expect(entry).to.have.property('loggedAt');",
+                  "    pm.expect(entry).to.have.property('responseTimeMs');",
+                  "  }",
+                  "});",
+                  "",
+                  "pm.test('Log count <= 50', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.length).to.be.at.most(50);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{apiBase}}/logs"
+          }
+        },
+        {
+          "name": "Logs — Get Latest with Custom Count",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Count respects query param (max 5)', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.length).to.be.at.most(5);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{apiBase}}/logs?count=5",
+              "query": [{ "key": "count", "value": "5" }]
+            }
+          }
+        },
+        {
+          "name": "Logs — Get Metrics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Metrics has all required fields', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('totalSubmissions');",
+                  "  pm.expect(body).to.have.property('avgAge');",
+                  "  pm.expect(body).to.have.property('avgWage');",
+                  "  pm.expect(body).to.have.property('avgNpsRealValue');",
+                  "  pm.expect(body).to.have.property('avgIndexRealValue');",
+                  "  pm.expect(body).to.have.property('avgResponseTimeMs');",
+                  "});",
+                  "",
+                  "pm.test('totalSubmissions is a number', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.totalSubmissions).to.be.a('number');",
+                  "  pm.expect(body.totalSubmissions).to.be.at.least(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{apiBase}}/logs/metrics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚡ Performance",
+      "item": [
+        {
+          "name": "Performance — Get System Metrics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Has time field', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('time');",
+                  "  pm.expect(body.time).to.be.a('string');",
+                  "});",
+                  "",
+                  "pm.test('Has memory field in MB format', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('memory');",
+                  "  pm.expect(body.memory).to.match(/^\\d+\\.\\d{2} MB$/);",
+                  "});",
+                  "",
+                  "pm.test('Has threads field as integer', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('threads');",
+                  "  pm.expect(body.threads).to.be.a('number');",
+                  "  pm.expect(Number.isInteger(body.threads)).to.be.true;",
+                  "  pm.expect(body.threads).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{apiBase}}/performance"
+          }
+        }
+      ]
+    }
+  ]
+}

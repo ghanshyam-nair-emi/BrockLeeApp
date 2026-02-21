@@ -1,0 +1,83 @@
+# ── Environment files ─────────────────────────────────────────
+.env.production
+.env.development
+.env.local
+.env
+
+# Safe to commit:
+# .env.example  ← template with no real values
+
+# ── .NET ─────────────────────────────────────────────────────
+**/bin/
+**/obj/
+*.user
+*.db
+*.db-shm
+*.db-wal
+
+# ── Angular ───────────────────────────────────────────────────
+brockui/node_modules/
+brockui/dist/
+
+# ── Python ───────────────────────────────────────────────────
+__pycache__/
+*.pyc
+PythonScripts/__pycache__/
+
+# ── Docker ───────────────────────────────────────────────────
+.dockerignore
+
+# Kaggle datasets — may contain PII, never commit
+PythonScripts/data/*.csv
+PythonScripts/data/*.xlsx
+PythonScripts/data/*.json
+PythonScripts/
+PythonScripts/.venv/*
+
+
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+__screenshots__/
+
+# System files
+.DS_Store
+Thumbs.db
+BrockLee/.vs/*
+brockui/.angular/*

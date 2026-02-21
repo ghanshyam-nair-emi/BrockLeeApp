@@ -1,0 +1,270 @@
+// ── Placeholder + loading (unchanged) ────────────────────────────────────────
+
+.placeholder {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  height:          100%;
+  min-height:      180px;
+  text-align:      center;
+  color:           var(--color-muted);
+  gap:             0.5rem;
+
+  .placeholder-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  p    { font-size: 0.95rem; font-weight: 500; color: var(--color-text-secondary); margin: 0; }
+  span { font-size: 0.8rem; }
+}
+
+.loading-state {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  min-height:      180px;
+  gap:             1rem;
+  color:           var(--color-muted);
+  font-size:       0.85rem;
+}
+
+.loading-bar {
+  width:         200px;
+  height:        3px;
+  background:    var(--color-border);
+  border-radius: 2px;
+  overflow:      hidden;
+  position:      relative;
+
+  &::after {
+    content:       '';
+    position:      absolute;
+    left:          -40%;
+    width:         40%;
+    height:        100%;
+    background:    var(--color-accent);
+    animation:     slide 1s ease infinite;
+    border-radius: 2px;
+  }
+}
+
+@keyframes slide { to { left: 140%; } }
+
+// ── Summary cards ─────────────────────────────────────────────────────────────
+
+.summary-cards {
+  display:               grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:                   0.6rem;
+  margin-bottom:         1rem;
+}
+
+.card {
+  background:     var(--color-card-bg);
+  border:         1px solid var(--color-border);
+  border-radius:  var(--radius-sm);
+  padding:        0.6rem 0.8rem;
+  display:        flex;
+  flex-direction: column;
+  gap:            0.2rem;
+
+  &.accent { border-color: var(--color-accent); }
+
+  .card-label {
+    font-size:      0.68rem;
+    color:          var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .card-value {
+    font-size:   0.92rem;
+    font-weight: 600;
+    color:       var(--color-text);
+  }
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+
+.tabs {
+  display:       flex;
+  gap:           0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+.tab {
+  padding:       0.35rem 0.9rem;
+  border:        1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background:    transparent;
+  color:         var(--color-muted);
+  font-size:     0.8rem;
+  cursor:        pointer;
+  transition:    all 0.15s;
+  display:       flex;
+  align-items:   center;
+  gap:           0.4rem;
+
+  &.active {
+    background:   var(--color-accent);
+    color:        #fff;
+    border-color: var(--color-accent);
+  }
+
+  .badge {
+    font-size:     0.65rem;
+    background:    rgba(255,255,255,0.2);
+    border-radius: 3px;
+    padding:       0.1rem 0.3rem;
+  }
+}
+
+// ── Totals bar ────────────────────────────────────────────────────────────────
+
+.totals-bar {
+  display:               grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap:                   0.5rem;
+  background:            var(--color-card-bg);
+  border:                1px solid var(--color-border);
+  border-radius:         var(--radius-sm);
+  padding:               0.65rem 0.85rem;
+  margin-bottom:         1rem;
+}
+
+.total-item {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.15rem;
+
+  .total-label { font-size: 0.68rem; color: var(--color-muted); text-transform: uppercase; }
+  .total-value { font-size: 0.9rem;  font-weight: 700; color: var(--color-text); }
+  .highlight   { color: var(--color-accent);  }
+  .green       { color: var(--color-success); }
+  .blue        { color: var(--color-info);    }
+}
+
+// ── Chart ─────────────────────────────────────────────────────────────────────
+
+.chart-container {
+  background:    var(--color-card-bg);
+  border:        1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding:       0.85rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.chart-header {
+  display:         flex;
+  align-items:     flex-start;
+  justify-content: space-between;
+  margin-bottom:   0.75rem;
+  flex-wrap:       wrap;
+  gap:             0.5rem;
+}
+
+.chart-title {
+  font-size:   0.82rem;
+  font-weight: 600;
+  color:       var(--color-text);
+  display:     flex;
+  flex-direction: column;
+  gap:         0.15rem;
+
+  .chart-sub {
+    font-size:   0.68rem;
+    color:       var(--color-muted);
+    font-weight: 400;
+  }
+}
+
+.chart-legend-note {
+  display:     flex;
+  align-items: center;
+  gap:         0.6rem;
+  font-size:   0.68rem;
+  color:       var(--color-muted);
+  flex-wrap:   wrap;
+}
+
+.legend-dot {
+  display:       inline-block;
+  width:         20px;
+  height:        2px;
+  border-radius: 1px;
+  vertical-align: middle;
+  margin-right:  2px;
+
+  &.solid.nps  { background: #6366f1; }
+  &.solid.idx  { background: #22c55e; }
+
+  &.dashed.nps {
+    background:         transparent;
+    border-top:         2px dashed #a5b4fc;
+    height:             0;
+    border-radius:      0;
+  }
+  &.dashed.idx {
+    background:         transparent;
+    border-top:         2px dashed #86efac;
+    height:             0;
+    border-radius:      0;
+  }
+}
+
+// Chart canvas wrapper — controls height
+.chart-wrap {
+  position: relative;
+  height:   320px;
+
+  canvas {
+    width:  100% !important;
+    height: 100% !important;
+  }
+}
+
+// ── K Period table ────────────────────────────────────────────────────────────
+
+.table-section { margin-top: 0.5rem; }
+
+.table-title {
+  font-size:      0.72rem;
+  font-weight:    600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color:          var(--color-muted);
+  margin-bottom:  0.5rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+
+  table {
+    width:           100%;
+    border-collapse: collapse;
+    font-size:       0.78rem;
+
+    th {
+      text-align:     left;
+      padding:        0.45rem 0.6rem;
+      color:          var(--color-muted);
+      font-weight:    600;
+      text-transform: uppercase;
+      font-size:      0.65rem;
+      letter-spacing: 0.05em;
+      border-bottom:  1px solid var(--color-border);
+    }
+
+    td {
+      padding:       0.45rem 0.6rem;
+      border-bottom: 1px solid var(--color-border);
+      color:         var(--color-text);
+
+      &.period-cell { color: var(--color-text-secondary); white-space: nowrap; }
+      &.green       { color: var(--color-success); font-weight: 500; }
+      &.blue        { color: var(--color-info);    font-weight: 500; }
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td      { background: var(--color-hover); }
+  }
+}

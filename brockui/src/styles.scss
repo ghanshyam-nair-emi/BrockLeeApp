@@ -1,0 +1,70 @@
+// ── Design tokens ─────────────────────────────────────────────────────────────
+
+:root {
+  // Background layers
+  --color-bg:           #0d0f14;
+  --color-surface:      #13161e;
+  --color-card-bg:      #1a1d27;
+  --color-input-bg:     #0f1118;
+  --color-hover:        rgba(255, 255, 255, 0.03);
+
+  // Borders
+  --color-border:       #252836;
+
+  // Text
+  --color-text:         #e8eaf0;
+  --color-text-secondary: #9ca3af;
+  --color-muted:        #5c6272;
+
+  // Brand
+  --color-accent:       #6366f1;   // Indigo
+  --color-accent-hover: #4f52d6;
+
+  // Semantic
+  --color-success:      #22c55e;
+  --color-danger:       #ef4444;
+  --color-info:         #38bdf8;
+  --color-warning:      #eab308;
+
+  // Radii
+  --radius:    10px;
+  --radius-sm: 6px;
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────────────
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height:      100%;
+  background:  var(--color-bg);
+  color:       var(--color-text);
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size:   14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+// ── Scrollbar ─────────────────────────────────────────────────────────────────
+
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-muted); }
+
+// ── Typography ────────────────────────────────────────────────────────────────
+
+h1, h2, h3, h4 { line-height: 1.2; font-weight: 600; }
+
+a {
+  color:           var(--color-accent);
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+.green { color: var(--color-success) !important; }
+.blue  { color: var(--color-info)    !important; }
+.red   { color: var(--color-danger)  !important; }
+.muted { color: var(--color-muted)   !important; }

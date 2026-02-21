@@ -1,0 +1,81 @@
+version: "3.9"
+
+services:
+
+  # ── RabbitMQ message broker ──────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: brocklee-rabbitmq
+    ports:
+      - "5672:5672"       # AMQP — .NET MassTransit connects here
+      - "15672:15672"     # Management UI → http://localhost:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: brocklee
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 15s
+      timeout:  10s
+      retries:  5
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - brocklee-network
+
+  # ── Main application (Angular + .NET + Python in one container) ──────────
+  app:
+    build:
+      context:    .
+      dockerfile: Dockerfile
+    image: blk-hacking-ind-ghanshyam-nair
+    container_name: blk-hacking-ind-ghanshyam-nair
+    ports:
+      - "5477:5477"     # .NET API + Angular SPA
+                        # Python :8000 is internal only — not exposed
+    environment:
+      # ── ASP.NET Core ──────────────────────────────────────────────────────
+      ASPNETCORE_ENVIRONMENT:    Production
+      ASPNETCORE_URLS:           http://0.0.0.0:5477
+      DOTNET_RUNNING_IN_CONTAINER: "true"
+
+      # ── Azure SQL (set in .env.production — never hardcode) ───────────────
+      ConnectionStrings__DefaultConnection: ${AZURE_SQL_CONNECTION_STRING}
+
+      # ── Python sidecar ────────────────────────────────────────────────────
+      # Internal loopback — Python runs in same container via supervisord
+      PythonService__BaseUrl: http://localhost:8000
+
+      # ── RabbitMQ ──────────────────────────────────────────────────────────
+      RabbitMq__Host:     rabbitmq
+      RabbitMq__Port:     5672
+      RabbitMq__Username: brocklee
+      RabbitMq__Password: ${RABBITMQ_PASSWORD}
+
+      # ── Cache TTLs ────────────────────────────────────────────────────────
+      Cache__MetricsTtlSeconds: 10
+      Cache__LogsTtlSeconds:     5
+      Cache__ComputeTtlSeconds: 30
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy   # wait for RabbitMQ before starting app
+    restart: unless-stopped
+    healthcheck:
+      test:         ["CMD", "curl", "-f", "http://localhost:5477/health"]
+      interval:     30s
+      timeout:      10s
+      retries:      3
+      start_period: 90s    # Python ML training takes up to 60s at startup
+    networks:
+      - brocklee-network
+
+volumes:
+  rabbitmq_data:
+    driver: local
+
+networks:
+  brocklee-network:
+    name: brocklee-network
+    driver: bridge

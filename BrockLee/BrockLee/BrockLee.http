@@ -1,0 +1,6 @@
+@BrockLee_HostAddress = http://localhost:5035
+
+GET {{BrockLee_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
