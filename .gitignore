@@ -77,3 +77,4 @@ __screenshots__/
 Thumbs.db
 BrockLee/.vs/*
 brockui/.angular/*
+brockui/package-lock.json
