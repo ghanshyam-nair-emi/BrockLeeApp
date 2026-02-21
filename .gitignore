@@ -28,10 +28,6 @@ PythonScripts/__pycache__/
 .dockerignore
 
 # Kaggle datasets — may contain PII, never commit
-PythonScripts/data/*.csv
-PythonScripts/data/*.xlsx
-PythonScripts/data/*.json
-PythonScripts/
 PythonScripts/.venv/*
 
 
