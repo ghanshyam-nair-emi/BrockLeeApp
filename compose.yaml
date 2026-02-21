@@ -16,8 +16,8 @@ services:
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
-      timeout:  10s
-      retries:  12
+      timeout: 10s
+      retries: 12
       start_period: 30s
     restart: unless-stopped
     networks:
@@ -44,8 +44,8 @@ services:
           "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\" || exit 1"
         ]
       interval: 10s
-      timeout:  5s
-      retries:  20
+      timeout: 5s
+      retries: 20
       start_period: 30s
     restart: unless-stopped
     networks:
@@ -56,26 +56,29 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: blk-hacking-ind-ghanshyam-nair
+
+    # Publish image to GitHub Container Registry (GHCR)
+    image: ghcr.io/ghanshyam-nair-emi/brockleeapp:latest
+
     container_name: blk-hacking-ind-ghanshyam-nair
     ports:
       - "5477:5477"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_URLS:        http://0.0.0.0:5477
+      ASPNETCORE_URLS: http://0.0.0.0:5477
 
       # Python sidecar (same container, supervisord)
       PythonService__BaseUrl: http://localhost:8000
 
       # RabbitMQ
-      RabbitMq__Host:     rabbitmq
-      RabbitMq__Port:     5672
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Port: 5672
       RabbitMq__Username: brocklee
       RabbitMq__Password: ${RABBITMQ_PASSWORD:-brocklee-dev-password}
 
       # Cache
       Cache__MetricsTtlSeconds: 10
-      Cache__LogsTtlSeconds:     5
+      Cache__LogsTtlSeconds: 5
       Cache__ComputeTtlSeconds: 30
 
       # ── Database Connection (profile-dependent) ──────────────────────────
@@ -95,10 +98,10 @@ services:
 
     restart: unless-stopped
     healthcheck:
-      test:         ["CMD", "curl", "-f", "http://localhost:5477/health"]
-      interval:     30s
-      timeout:      10s
-      retries:      3
+      test: ["CMD", "curl", "-f", "http://localhost:5477/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
       start_period: 90s
     networks:
       - brocklee-network
