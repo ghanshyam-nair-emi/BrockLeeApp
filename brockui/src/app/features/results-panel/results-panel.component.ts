@@ -5,15 +5,22 @@ import {
 } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import {
-  ComputeResponse, SavingsByDate, PredictResponse
+  ComputeResponse, SavingsByDate, PredictResponse,
+  TimeSeriesResponse, RiskProfileResponse
 } from '../../core/models';
+import { TimeSeriesChartComponent } from '../timeseries-chart/timeseries-chart.component';
+import { RiskProfileComponent } from '../risk-profile/risk-profile.component';
+import { ApiService } from '../../core/services/api.service';
 
 declare const Chart: any;
 
 @Component({
   selector:    'app-results-panel',
   standalone:  true,
-  imports:     [CommonModule, DecimalPipe, DatePipe],
+  imports:     [
+    CommonModule, DecimalPipe, DatePipe,
+    TimeSeriesChartComponent, RiskProfileComponent
+  ],
   templateUrl: './results-panel.component.html',
   styleUrls:   ['./results-panel.component.scss']
 })
@@ -22,12 +29,25 @@ export class ResultsPanelComponent implements OnChanges, OnDestroy {
   @Input() result:     ComputeResponse  | null = null;
   @Input() prediction: PredictResponse  | null = null;
   @Input() isLoading:  boolean = false;
+  @Input() age:        number = 29;
+  @Input() wage:       number = 50000;
 
   @ViewChild('projectionChart')
   chartRef!: ElementRef<HTMLCanvasElement>;
 
   activeTab: 'nps' | 'index' = 'nps';
   private chartInstance: any = null;
+
+  // Advanced Features
+  timeSeriesDataNps:  TimeSeriesResponse | null = null;
+  timeSeriesDataIndex: TimeSeriesResponse | null = null;
+  riskProfileData:    RiskProfileResponse | null = null;
+  
+  loadingTimeSeries = false;
+  loadingRiskProfile = false;
+  expenseVolatility = 0.3;  // Default, will be calculated from expenses
+
+  constructor(private api: ApiService) {}
 
   // ── Getters ──────────────��────────────────────────────────────────────────
 
@@ -55,12 +75,96 @@ export class ResultsPanelComponent implements OnChanges, OnDestroy {
     this.renderChart();
   }
 
+  // ── Advanced Features ─────────────────────────────────────────────────────
+
+  loadTimeSeries(isNps: boolean = true): void {
+    if (!this.result) return;
+
+    const principal = this.result.nps.savingsByDates.reduce((sum, s) => sum + s.amount, 0);
+    const annualIncome = this.wage * 12;
+
+    this.loadingTimeSeries = true;
+
+    this.api.timeseries(
+      { principal, age: this.age, annual_income: annualIncome, inflation: 0.055 },
+      isNps
+    ).subscribe({
+      next: (data) => {
+        if (isNps) {
+          this.timeSeriesDataNps = data;
+        } else {
+          this.timeSeriesDataIndex = data;
+        }
+        this.loadingTimeSeries = false;
+      },
+      error: (err) => {
+        console.error('Time-series load failed:', err);
+        this.loadingTimeSeries = false;
+      }
+    });
+  }
+
+  loadRiskProfile(): void {
+    if (!this.result) return;
+
+    const principal = this.result.nps.savingsByDates.reduce((sum, s) => sum + s.amount, 0);
+    const annualIncome = this.wage * 12;
+
+    this.loadingRiskProfile = true;
+
+    this.api.riskProfile({
+      principal,
+      age: this.age,
+      annual_income: annualIncome,
+      expense_volatility: this.expenseVolatility,
+      wage_stability: 0.8  // Default, could be user-provided
+    }).subscribe({
+      next: (data) => {
+        this.riskProfileData = data;
+        this.loadingRiskProfile = false;
+      },
+      error: (err) => {
+        console.error('Risk profile load failed:', err);
+        this.loadingRiskProfile = false;
+      }
+    });
+  }
+
+  calculateExpenseVolatility(expenses: any[]): number {
+    if (!expenses || expenses.length < 2) return 0.5;
+
+    const amounts = expenses.map((e: any) => e.amount || 0);
+    const avg = amounts.reduce((a, b) => a + b, 0) / amounts.length;
+
+    if (avg === 0) return 0.5;
+
+    const variance = amounts.reduce((sum, x) => sum + (x - avg) ** 2, 0) / amounts.length;
+    const stdev = Math.sqrt(variance);
+    const cv = stdev / avg;
+
+    return Math.min(1.0, cv);
+  }
+
+  onInstrumentSelected(instrument: string): void {
+    console.log('Instrument selected:', instrument);
+    // Can emit event or trigger action
+  }
+
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['result'] || changes['prediction']) {
       // Defer until view is painted
       setTimeout(() => this.renderChart(), 50);
+
+      // Reset advanced feature data when new results arrive
+      if (changes['result'] && changes['result'].currentValue !== changes['result'].previousValue) {
+        this.timeSeriesDataNps   = null;
+        this.timeSeriesDataIndex = null;
+        this.riskProfileData     = null;
+        this.loadingTimeSeries   = false;
+        this.loadingRiskProfile  = false;
+      }
     }
   }
 

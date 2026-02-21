@@ -106,4 +106,62 @@ public class ReturnsController : ControllerBase
             predictionsAsync = true
         });
     }
+
+    /// <summary>
+    /// POST /blackrock/challenge/v1/timeseries:nps
+    /// Year-by-year projection timeline for NPS until retirement.
+    /// Shows nominal and inflation-adjusted values, plus milestones.
+    /// </summary>
+    [HttpPost("timeseries:nps")]
+    public async Task<IActionResult> GetTimeSeriesNps([FromBody] TimeSeriesRequest request)
+    {
+        if (request.Principal < 0)
+            return BadRequest(new { message = "Principal must be >= 0." });
+
+        var timeline = await _returnsService.GetTimeSeriesAsync(
+            request.Principal, request.Age, request.AnnualIncome, 
+            request.Inflation, isNps: true);
+
+        return Ok(timeline);
+    }
+
+    /// <summary>
+    /// POST /blackrock/challenge/v1/timeseries:index
+    /// Year-by-year projection timeline for Index Fund until retirement.
+    /// Shows nominal and inflation-adjusted values, plus milestones.
+    /// </summary>
+    [HttpPost("timeseries:index")]
+    public async Task<IActionResult> GetTimeSeriesIndex([FromBody] TimeSeriesRequest request)
+    {
+        if (request.Principal < 0)
+            return BadRequest(new { message = "Principal must be >= 0." });
+
+        var timeline = await _returnsService.GetTimeSeriesAsync(
+            request.Principal, request.Age, request.AnnualIncome,
+            request.Inflation, isNps: false);
+
+        return Ok(timeline);
+    }
+
+    /// <summary>
+    /// POST /blackrock/challenge/v1/risk-profile
+    /// ML-based risk profiling: recommend NPS vs Index based on expense patterns.
+    /// Takes expense volatility (0-1) and wage stability (0-1) as input.
+    /// Returns recommendation with confidence score and reasoning.
+    /// </summary>
+    [HttpPost("risk-profile")]
+    public async Task<IActionResult> GetRiskProfile([FromBody] RiskProfileRequest request)
+    {
+        if (request.ExpenseVolatility < 0 || request.ExpenseVolatility > 1)
+            return BadRequest(new { message = "Expense volatility must be between 0 and 1." });
+
+        if (request.WageStability < 0 || request.WageStability > 1)
+            return BadRequest(new { message = "Wage stability must be between 0 and 1." });
+
+        var profile = await _returnsService.GetRiskProfileAsync(
+            request.Principal, request.Age, request.AnnualIncome,
+            request.ExpenseVolatility, request.WageStability);
+
+        return Ok(profile);
+    }
 }

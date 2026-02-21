@@ -1,0 +1,366 @@
+// ── TimeSeriesChart Component SCSS ────────────────────────────────────────────
+// Matches dashboard dark theme with indigo accents
+
+.timeseries-container {
+  width: 100%;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+.header {
+  padding: 1.2rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+
+  .title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 0.3rem 0;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+// ── Summary Cards ─────────────────────────────────────────────────────────────
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
+  padding: 1.2rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+
+  .summary-card {
+    padding: 0.8rem;
+    background: var(--color-input-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    &:hover {
+      border-color: var(--color-accent);
+      background: rgba(99, 102, 241, 0.02);
+    }
+
+    .label {
+      font-size: 0.65rem;
+      color: var(--color-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .value {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .subtext {
+      font-size: 0.7rem;
+      color: var(--color-muted);
+      margin-top: 0.2rem;
+    }
+
+    &.highlight {
+      border-color: var(--color-accent);
+      background: rgba(99, 102, 241, 0.05);
+
+      .value {
+        color: var(--color-accent);
+      }
+    }
+
+    &.success {
+      border-color: var(--color-success);
+      background: rgba(34, 197, 94, 0.05);
+
+      .value {
+        color: var(--color-success);
+      }
+    }
+
+    &.info {
+      border-color: var(--color-info);
+      background: rgba(56, 189, 248, 0.05);
+
+      .value {
+        color: var(--color-info);
+      }
+    }
+  }
+}
+
+// ── Chart Section ─────────────────────────────────────────────────────────────
+
+.chart-section {
+  background: var(--color-card-bg);
+  padding: 1rem 1.2rem 1.2rem;
+  border-bottom: 1px solid var(--color-border);
+  height: 300px;    // explicit height required for maintainAspectRatio: false
+  position: relative;
+
+  canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
+// ── Milestones Section ────────────────────────────────────────────────────────
+
+.milestones-section {
+  padding: 1.2rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+}
+
+.milestones-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 0.8rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.milestones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.6rem;
+
+  .milestone {
+    padding: 0.6rem;
+    background: var(--color-input-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: var(--color-accent);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    &.active {
+      border-color: var(--color-accent);
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .milestone-name {
+      font-size: 0.7rem;
+      color: var(--color-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0 0 0.2rem 0;
+    }
+
+    .milestone-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-accent);
+      margin: 0 0 0.2rem 0;
+    }
+
+    .milestone-age {
+      font-size: 0.7rem;
+      color: var(--color-muted);
+    }
+  }
+}
+
+// ── Timeline Table ────────────────────────────────────────────────────────────
+
+.timeline-section {
+  padding: 1.2rem;
+  background: var(--color-card-bg);
+  overflow-x: auto;
+}
+
+.timeline-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 0.8rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.timeline-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+
+  thead {
+    background: var(--color-input-bg);
+    border-bottom: 1px solid var(--color-border);
+
+    th {
+      padding: 0.6rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--color-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.7rem;
+    }
+  }
+
+  tbody {
+    tr {
+      transition: background 0.15s;
+      border-bottom: 1px solid var(--color-border);
+
+      &:hover {
+        background: var(--color-input-bg);
+      }
+
+      td {
+        padding: 0.6rem;
+        color: var(--color-text-secondary);
+
+        &.year-cell {
+          color: var(--color-text);
+          font-weight: 500;
+        }
+
+        &.value-cell {
+          color: var(--color-text);
+          font-weight: 600;
+        }
+
+        &.success {
+          color: var(--color-success);
+        }
+
+        &.info {
+          color: var(--color-info);
+        }
+      }
+    }
+  }
+}
+
+// ── Chart Legend ──────────────────────────────────────────────────────────────
+
+.chart-legend {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.8rem;
+  padding: 0.8rem;
+  background: var(--color-input-bg);
+  border-radius: var(--radius-sm);
+  flex-wrap: wrap;
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+
+    .legend-label {
+      color: var(--color-text-secondary);
+    }
+
+    &.real {
+      .legend-color {
+        background: var(--color-accent);
+      }
+    }
+
+    &.nominal {
+      .legend-color {
+        background: var(--color-muted);
+      }
+    }
+
+    &.roi {
+      .legend-color {
+        background: var(--color-warning);
+      }
+    }
+  }
+}
+
+// ── Responsive Design ─────────────────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .timeseries-container {
+    border-radius: var(--radius-sm);
+  }
+
+  .header {
+    padding: 0.8rem;
+
+    .title {
+      font-size: 0.95rem;
+    }
+
+    .subtitle {
+      font-size: 0.7rem;
+    }
+  }
+
+  .summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0.8rem;
+    gap: 0.5rem;
+
+    .summary-card {
+      padding: 0.6rem;
+
+      .value {
+        font-size: 0.95rem;
+      }
+    }
+  }
+
+  .chart-section {
+    padding: 0.8rem;
+    height: 220px;
+
+    canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+  }
+
+  .milestones-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .timeline-table {
+    font-size: 0.7rem;
+
+    th,
+    td {
+      padding: 0.4rem;
+    }
+  }
+
+  .chart-legend {
+    grid-template-columns: 1fr;
+  }
+}

@@ -9,7 +9,9 @@ import {
   ReturnsRequest, ReturnsResponse,
   ComputeResponse, PredictRequest,
   PredictResponse, ModelMetadata,
-  UserLog, LogMetrics, PerformanceMetrics
+  UserLog, LogMetrics, PerformanceMetrics,
+  TimeSeriesRequest, TimeSeriesResponse,
+  RiskProfileRequest, RiskProfileResponse
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -143,5 +145,20 @@ export class ApiService {
     }));
 
     return { models, consensus, featureImportance };
+  }
+
+  // ── Time-Series Forecast ──────────────────────────────────────────────────
+
+  timeseries(req: TimeSeriesRequest, isNps: boolean = true): Observable<TimeSeriesResponse> {
+    const endpoint = isNps ? 'timeseries:nps' : 'timeseries:index';
+    return this.http.post<TimeSeriesResponse>(
+      `${this.api}/${endpoint}`, req, { headers: this.headers });
+  }
+
+  // ── Risk Profiling ────────────────────────────────────────────────────────
+
+  riskProfile(req: RiskProfileRequest): Observable<RiskProfileResponse> {
+    return this.http.post<RiskProfileResponse>(
+      `${this.api}/risk-profile`, req, { headers: this.headers });
   }
 }

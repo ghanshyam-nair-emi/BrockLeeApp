@@ -28,27 +28,27 @@
   <div class="consensus-bar">
     <div class="consensus-left">
       <span class="consensus-label">Best Model</span>
-      <!-- FIX: optional chaining on every consensus access -->
-      <span class="consensus-model">{{ prediction.consensus?.bestModel }}</span>
+      <!-- consensus is already narrowed by ngIf, so use . instead of ?. -->
+      <span class="consensus-model">{{ prediction.consensus.bestModel }}</span>
     </div>
     <div class="consensus-center">
       <span class="consensus-label">Model Agreement</span>
       <span
         class="badge"
-        [ngClass]="agreementClass(prediction.consensus?.modelAgreement ?? 'LOW')">
-        {{ prediction.consensus?.modelAgreement ?? '—' }}
+        [ngClass]="agreementClass(prediction.consensus.modelAgreement ?? 'LOW')">
+        {{ prediction.consensus.modelAgreement ?? '—' }}
       </span>
     </div>
     <div class="consensus-right">
       <span class="consensus-label">Consensus NPS</span>
       <span class="consensus-value">
-        ₹{{ (prediction.consensus?.consensusNps ?? 0) | number:'1.0-0' }}
+        ₹{{ (prediction.consensus.consensusNps ?? 0) | number:'1.0-0' }}
       </span>
     </div>
     <div class="consensus-right">
       <span class="consensus-label">Consensus Index</span>
       <span class="consensus-value green">
-        ₹{{ (prediction.consensus?.consensusIndex ?? 0) | number:'1.0-0' }}
+        ₹{{ (prediction.consensus.consensusIndex ?? 0) | number:'1.0-0' }}
       </span>
     </div>
   </div>
@@ -91,9 +91,9 @@
   <!-- Std Dev note -->
   <div class="spread-note">
     <span>
-      NPS spread: ±₹{{ (prediction.consensus?.npsStdDev ?? 0) | number:'1.0-0' }}
+      NPS spread: ±₹{{ (prediction.consensus.npsStdDev ?? 0) | number:'1.0-0' }}
       &nbsp;|&nbsp;
-      Index spread: ±₹{{ (prediction.consensus?.indexStdDev ?? 0) | number:'1.0-0' }}
+      Index spread: ±₹{{ (prediction.consensus.indexStdDev ?? 0) | number:'1.0-0' }}
     </span>
   </div>
 

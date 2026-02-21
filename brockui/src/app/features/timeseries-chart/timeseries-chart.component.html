@@ -1,0 +1,82 @@
+<div class="timeseries-container" *ngIf="data">
+  <!-- Header -->
+  <div class="header">
+    <h2 class="title">
+      {{data.instrument === 'nps' ? '🏛️ NPS' : '📊 Index Fund'}} Growth Projection
+    </h2>
+    <p class="subtitle">
+      Year-by-Year forecast · Age {{data.startAge}} → 60 · Inflation-adjusted
+    </p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+    <div class="summary-card">
+      <div class="label">Principal</div>
+      <div class="value">₹{{data.principal | number:'1.0-0'}}</div>
+    </div>
+    <div class="summary-card highlight">
+      <div class="label">Value at 60 (Real)</div>
+      <div class="value">₹{{(retirementEntry?.realValue || 0) | number:'1.0-0'}}</div>
+      <div class="subtext">Inflation-adjusted</div>
+    </div>
+    <div class="summary-card success">
+      <div class="label">Total ROI</div>
+      <div class="value">₹{{totalROI | number:'1.0-0'}}</div>
+      <div class="subtext">Profit gained</div>
+    </div>
+    <div class="summary-card info">
+      <div class="label">Years</div>
+      <div class="value">{{(60 - data.startAge)}}</div>
+      <div class="subtext">To retirement</div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-section">
+    <canvas #projectionCanvas></canvas>
+  </div>
+
+  <!-- Milestones -->
+  <div class="milestones-section" *ngIf="data.milestones && data.milestones.length > 0">
+    <h3 class="milestones-title">🎯 Key Milestones</h3>
+    <div class="milestones-grid">
+      <div
+        *ngFor="let m of data.milestones"
+        class="milestone"
+        [class.active]="selectedMilestone === m"
+        (click)="selectMilestone(m)">
+        <p class="milestone-name">₹{{m.threshold | number:'1.0-0'}}</p>
+        <p class="milestone-value">{{m.projectionYear}}</p>
+        <p class="milestone-age">Age {{m.age}}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline Table -->
+  <div class="timeline-section">
+    <h3 class="timeline-title">📋 Year-by-Year Breakdown</h3>
+    <table class="timeline-table">
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Age</th>
+          <th>Nominal (₹)</th>
+          <th>Real (₹)</th>
+          <th>ROI (₹)</th>
+          <th>Growth</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let entry of data.timeline">
+          <td class="year-cell">{{entry.projectionYear}}</td>
+          <td>{{entry.age}}</td>
+          <td>{{entry.nominalValue | number:'1.0-0'}}</td>
+          <td class="value-cell">{{entry.realValue | number:'1.0-0'}}</td>
+          <td [class.success]="entry.roi >= 0">{{entry.roi >= 0 ? '+' : ''}}{{entry.roi | number:'1.0-0'}}</td>
+          <td class="info">{{(entry.growthRate * 100).toFixed(1)}}%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

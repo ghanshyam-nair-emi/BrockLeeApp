@@ -1,0 +1,223 @@
+<div class="risk-profile-container" *ngIf="data">
+  <!-- Header -->
+  <div class="header">
+    <h2 class="title">🎯 Investment Risk Profile Analysis</h2>
+    <p class="subtitle">Personalized Recommendation Based on Your Spending Patterns</p>
+  </div>
+
+  <!-- Main Recommendation Card -->
+  <div class="recommendation-card">
+    <div class="recommendation-content">
+      <div class="recommendation-left">
+        <div class="instrument-icon">
+          {{data.recommendedInstrument === 'nps' ? '🏛️' : '📊'}}
+        </div>
+        <div class="recommendation-text">
+          <h3 class="recommended-instrument">{{recommendedDisplay}}</h3>
+          <p class="recommendation-reason">{{data.reasoning}}</p>
+        </div>
+      </div>
+      <div class="recommendation-right">
+        <div class="confidence-badge">
+          <div class="confidence-circle">
+            <span class="confidence-value">{{confidencePercentage}}%</span>
+          </div>
+          <p class="confidence-label">Confidence</p>
+        </div>
+      </div>
+    </div>
+    <div class="risk-profile-badge" [ngClass]="riskBadgeClass">
+      {{data.riskProfile | titlecase}} Risk Profile
+    </div>
+  </div>
+
+  <!-- Risk Metrics Section -->
+  <div class="metrics-section">
+    <h3 class="section-title">📊 Risk Metrics Breakdown</h3>
+    
+    <div class="metrics-grid">
+      <!-- Expense Volatility -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Expense Volatility</span>
+          <span class="metric-value">{{(data.expenseVolatility * 100).toFixed(1)}}%</span>
+        </div>
+        <div class="metric-bar">
+          <div 
+            class="metric-fill"
+            [style.width.%]="data.expenseVolatility * 100"
+            [style.backgroundColor]="getVolatilityColor()">
+          </div>
+        </div>
+        <p class="metric-description">{{volatilityLabel}}</p>
+        <p class="metric-explanation">
+          How much your monthly spending varies. {{data.expenseVolatility < 0.4 ? 'Low volatility suggests stable, predictable spending.' : 'High volatility suggests variable spending patterns.'}}
+        </p>
+      </div>
+
+      <!-- Wage Stability -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Wage Stability</span>
+          <span class="metric-value">{{(data.wageStability * 100).toFixed(1)}}%</span>
+        </div>
+        <div class="metric-bar">
+          <div 
+            class="metric-fill"
+            [style.width.%]="data.wageStability * 100"
+            style="background-color: #17a2b8;">
+          </div>
+        </div>
+        <p class="metric-description">{{data.wageStability > 0.7 ? 'Stable Income' : 'Variable Income'}}</p>
+        <p class="metric-explanation">
+          How consistent and predictable your income is. {{data.wageStability > 0.7 ? 'Stable income supports more aggressive investments.' : 'Consider safer options for stable returns.'}}
+        </p>
+      </div>
+
+      <!-- Overall Stability Score -->
+      <div class="metric-card highlight">
+        <div class="metric-header">
+          <span class="metric-label">Overall Stability Score</span>
+          <span class="metric-value">{{(data.stabilityScore * 100).toFixed(1)}}%</span>
+        </div>
+        <div class="metric-bar">
+          <div 
+            class="metric-fill"
+            [style.width.%]="data.stabilityScore * 100"
+            [style.backgroundColor]="getStabilityColor()">
+          </div>
+        </div>
+        <p class="metric-description">{{stabilityLabel}}</p>
+        <p class="metric-explanation">
+          Combined measure of expense and income stability. This determines your capacity to take investment risk.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tabs-container">
+    <div class="tabs-nav">
+      <button 
+        class="tab-btn"
+        [class.active]="selectedTab === 'overview'"
+        (click)="switchTab('overview')">
+        📋 Overview
+      </button>
+      <button 
+        class="tab-btn"
+        [class.active]="selectedTab === 'advantages'"
+        (click)="switchTab('advantages')">
+        ⭐ Advantages
+      </button>
+    </div>
+
+    <!-- Overview Tab -->
+    <div class="tab-content" *ngIf="selectedTab === 'overview'">
+      <div class="comparison-container">
+        <h4>Why {{recommendedDisplay}}?</h4>
+        <p class="main-reasoning">{{data.reasoning}}</p>
+
+        <div class="key-points">
+          <h5>Key Factors:</h5>
+          <ul>
+            <li *ngIf="data.expenseVolatility < 0.4">
+              ✓ Low expense volatility ({{(data.expenseVolatility * 100).toFixed(1)}}%) indicates stable spending patterns
+            </li>
+            <li *ngIf="data.expenseVolatility >= 0.4">
+              ⚠ Higher expense volatility ({{(data.expenseVolatility * 100).toFixed(1)}}%) suggests variable spending patterns
+            </li>
+            <li *ngIf="data.wageStability > 0.7">
+              ✓ Stable income stream ({{(data.wageStability * 100).toFixed(1)}}%) supports growth-focused investments
+            </li>
+            <li *ngIf="data.wageStability <= 0.7">
+              ⚠ Variable income ({{(data.wageStability * 100).toFixed(1)}}%) suggests preference for stable returns
+            </li>
+            <li>
+              {{data.recommendedInstrument === 'nps' ? 
+                '💡 Conservative approach prioritizes safety and tax benefits' :
+                '💡 Growth-oriented approach maximizes long-term wealth accumulation'}}
+            </li>
+          </ul>
+        </div>
+
+        <div class="confidence-note">
+          <strong>Confidence Level: {{confidencePercentage}}%</strong>
+          {{confidencePercentage >= 80 ? 
+            '- This recommendation is highly aligned with your profile.' :
+            confidencePercentage >= 60 ?
+            '- This recommendation is well-supported by your metrics.' :
+            '- This is a reasonable recommendation based on available data.'}}
+        </div>
+      </div>
+    </div>
+
+    <!-- Advantages Tab -->
+    <div class="tab-content" *ngIf="selectedTab === 'advantages'">
+      <div class="advantages-container">
+        <div class="advantage-section" *ngIf="data.recommendedInstrument === 'nps'">
+          <h5 class="advantage-title">✅ Why NPS is Right for You</h5>
+          <ul class="advantage-list">
+            <li *ngFor="let advantage of data.npsAdvantages" class="advantage-item">
+              {{advantage}}
+            </li>
+          </ul>
+        </div>
+
+        <div class="advantage-section" *ngIf="data.recommendedInstrument !== 'nps'">
+          <h5 class="advantage-title">✅ Why Index Fund is Right for You</h5>
+          <ul class="advantage-list">
+            <li *ngFor="let advantage of data.indexAdvantages" class="advantage-item">
+              {{advantage}}
+            </li>
+          </ul>
+        </div>
+
+        <div class="advantage-section alternative">
+          <h5 class="advantage-title">
+            {{data.recommendedInstrument === 'nps' ? '💡 Index Fund' : '💡 NPS'}} as Alternative
+          </h5>
+          <ul class="advantage-list">
+            <li *ngFor="let advantage of (data.recommendedInstrument === 'nps' ? data.indexAdvantages : data.npsAdvantages)" class="advantage-item">
+              {{advantage}}
+            </li>
+          </ul>
+          <p class="alternative-note">
+            {{data.recommendedInstrument === 'nps' ? 
+              'Consider Index Fund if you want higher growth potential and are comfortable with market volatility.' :
+              'Consider NPS if you prefer tax benefits and stable, government-backed returns despite lower growth.'}}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <button 
+      class="btn btn-primary"
+      [disabled]="isLoading"
+      (click)="selectInstrument(data.recommendedInstrument)">
+      <span *ngIf="!isLoading">💰 Proceed with {{recommendedDisplay}}</span>
+      <span *ngIf="isLoading">⏳ Processing...</span>
+    </button>
+    <button 
+      class="btn btn-secondary"
+      [disabled]="isLoading"
+      (click)="selectInstrument(data.recommendedInstrument === 'nps' ? 'index' : 'nps')">
+      <span *ngIf="!isLoading">🔄 Choose Alternative</span>
+      <span *ngIf="isLoading">⏳ Processing...</span>
+    </button>
+  </div>
+
+  <!-- Info Card -->
+  <div class="info-card">
+    <p>
+      <strong>ℹ️ Important Note:</strong> This recommendation is based on an analysis of your expense volatility and wage stability. 
+      Both NPS and Index Fund are valid choices. {{data.recommendedInstrument === 'nps' ? 
+        'While NPS offers safety and tax benefits, Index Funds provide higher growth potential.' :
+        'While Index Funds offer higher returns, NPS provides stability and guaranteed tax benefits.'}}
+      Choose based on your personal comfort with investment risk.
+    </p>
+  </div>
+</div>

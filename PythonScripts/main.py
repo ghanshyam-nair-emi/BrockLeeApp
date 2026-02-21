@@ -97,6 +97,56 @@ class DatasetStats(BaseModel):
     features:         list[str]
 
 
+# ── Time-Series Forecast Models ───────────────────────────────────────────────
+
+class TimeSeriesEntry(BaseModel):
+    yearOffset: int
+    projectionYear: int
+    age: int
+    balance: float
+    nominalValue: float
+    realValue: float
+    roi: float
+    growthRate: float
+    isRetirement: bool
+
+class MilestoneEntry(BaseModel):
+    threshold: float
+    projectionYear: int
+    yearOffset: int
+    age: int
+    realValue: float
+    description: str
+
+class TimeSeriesResponse(BaseModel):
+    principal: float
+    startAge: int
+    instrument: str  # "nps" or "index"
+    timeline: list[TimeSeriesEntry]
+    milestones: list[MilestoneEntry]
+
+
+# ── Risk Profile Models ───────────────────────────────────────────────────────
+
+class RiskProfileRequest(BaseModel):
+    principal: float = Field(..., ge=0)
+    age: int = Field(..., ge=1, le=59)
+    annual_income: float = Field(..., gt=0)
+    expense_volatility: float = Field(..., ge=0, le=1)
+    wage_stability: float = Field(default=0.8, ge=0, le=1)
+
+class RiskProfileResponse(BaseModel):
+    riskProfile: str  # "conservative" | "moderate" | "aggressive"
+    recommendedInstrument: str  # "nps" | "index"
+    confidence: float
+    expenseVolatility: float
+    wageStability: float
+    stabilityScore: float
+    reasoning: str
+    npsAdvantages: list[str]
+    indexAdvantages: list[str]
+
+
 # ── Health ────────────────────────────────────────────────────────────────────
 
 @app.get("/health", tags=["Meta"])
@@ -165,7 +215,68 @@ def project_full(req: ProjectionRequest):
     )
 
 
-# ── ML endpoints ──────────────────────────────────────────────────────────────
+# ── Time-Series Forecast ──────────────────────────────────────────────────────
+
+@app.post("/compute/timeseries", response_model=TimeSeriesResponse, tags=["Compute"])
+def get_timeseries(req: ProjectionRequest):
+    """
+    Year-by-year projection timeline until retirement.
+    Shows progression of nominal and inflation-adjusted values.
+    """
+    is_nps = req  # Infer from context (for now, provide both)
+    timeline = compute.project_timeline(
+        req.principal, req.age, req.annual_income, is_nps=True, inflation=req.inflation
+    )
+    milestones = compute.project_milestones(
+        req.principal, req.age, req.annual_income, is_nps=True, inflation=req.inflation
+    )
+    
+    return TimeSeriesResponse(
+        principal=req.principal,
+        startAge=req.age,
+        instrument="nps",
+        timeline=[TimeSeriesEntry(**t) for t in timeline],
+        milestones=[MilestoneEntry(**m) for m in milestones]
+    )
+
+
+@app.post("/compute/timeseries-index", response_model=TimeSeriesResponse, tags=["Compute"])
+def get_timeseries_index(req: ProjectionRequest):
+    """
+    Year-by-year projection timeline for Index Fund until retirement.
+    """
+    timeline = compute.project_timeline(
+        req.principal, req.age, req.annual_income, is_nps=False, inflation=req.inflation
+    )
+    milestones = compute.project_milestones(
+        req.principal, req.age, req.annual_income, is_nps=False, inflation=req.inflation
+    )
+    
+    return TimeSeriesResponse(
+        principal=req.principal,
+        startAge=req.age,
+        instrument="index",
+        timeline=[TimeSeriesEntry(**t) for t in timeline],
+        milestones=[MilestoneEntry(**m) for m in milestones]
+    )
+
+
+# ── Risk Profiling ────────────────────────────────────────────────────────────
+
+@app.post("/compute/risk-profile", response_model=RiskProfileResponse, tags=["Compute"])
+def get_risk_profile(req: RiskProfileRequest):
+    """
+    ML-based risk profiling: recommend NPS vs Index based on expense volatility
+    and wage stability. Returns personalized recommendation with confidence score.
+    """
+    profile = compute.profile_risk(
+        req.principal,
+        req.age,
+        req.annual_income,
+        req.expense_volatility,
+        req.wage_stability
+    )
+    return RiskProfileResponse(**profile)
 
 @app.post("/predict", response_model=PredictResponse, tags=["ML Predictions"])
 def predict(req: PredictRequest):

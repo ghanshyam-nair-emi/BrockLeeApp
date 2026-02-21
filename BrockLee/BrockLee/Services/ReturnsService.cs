@@ -125,6 +125,50 @@ public sealed class ReturnsService
         });
     }
 
+    /// <summary>
+    /// Get year-by-year time-series projection until retirement.
+    /// Returns timeline with year-offset, projection year, age, and growing balances.
+    /// </summary>
+    public async Task<TimeSeriesResponse> GetTimeSeriesAsync(
+        double principal, int age, double annualIncome, double inflation, bool isNps)
+    {
+        if (principal <= 0)
+            return new TimeSeriesResponse { Timeline = new(), Milestones = new() };
+
+        var cacheKey = CacheService.HashKey(
+            isNps ? "timeseries:nps" : "timeseries:index",
+            new { principal, age, annualIncome, inflation });
+
+        return await _cache.GetOrCreateAsync(cacheKey, _cache.ComputeTtl, async () =>
+        {
+            double inf = inflation > 0 ? inflation : DefaultInflation;
+
+            if (isNps)
+                return await _python.GetTimeSeriesAsync(principal, age, annualIncome, inf);
+            else
+                return await _python.GetTimeSeriesIndexAsync(principal, age, annualIncome, inf);
+        });
+    }
+
+    /// <summary>
+    /// Get ML-based risk profiling and instrument recommendation.
+    /// Analyzes expense volatility to recommend NPS (stable) or Index (growth).
+    /// </summary>
+    public async Task<RiskProfileResponse> GetRiskProfileAsync(
+        double principal, int age, double annualIncome, 
+        double expenseVolatility, double wageStability = 0.8)
+    {
+        var cacheKey = CacheService.HashKey(
+            "risk-profile",
+            new { principal, age, annualIncome, expenseVolatility, wageStability });
+
+        return await _cache.GetOrCreateAsync(cacheKey, _cache.ComputeTtl, async () =>
+        {
+            return await _python.GetRiskProfileAsync(
+                principal, age, annualIncome, expenseVolatility, wageStability);
+        });
+    }
+
     // Tax helper — still needed for validation elsewhere
     public static double CalculateTax(double income)
     {

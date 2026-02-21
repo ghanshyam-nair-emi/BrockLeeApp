@@ -47,6 +47,57 @@ public class PythonBridgeService
     public async Task<TaxResponse> GetTaxAsync(double income)
         => await PostAsync<TaxResponse>("/compute/tax", new { income });
 
+    // ── Time-Series Forecast ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// POST /compute/timeseries
+    /// Returns year-by-year projection timeline for NPS until retirement.
+    /// </summary>
+    public async Task<TimeSeriesResponse> GetTimeSeriesAsync(
+        double principal, int age, double annualIncome, double inflation = 0.055)
+        => await PostAsync<TimeSeriesResponse>("/compute/timeseries", new
+        {
+            principal,
+            age,
+            annual_income = annualIncome,
+            inflation
+        });
+
+    /// <summary>
+    /// POST /compute/timeseries-index
+    /// Returns year-by-year projection timeline for Index Fund until retirement.
+    /// </summary>
+    public async Task<TimeSeriesResponse> GetTimeSeriesIndexAsync(
+        double principal, int age, double annualIncome, double inflation = 0.055)
+        => await PostAsync<TimeSeriesResponse>("/compute/timeseries-index", new
+        {
+            principal,
+            age,
+            annual_income = annualIncome,
+            inflation
+        });
+
+    // ── Risk Profiling ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// POST /compute/risk-profile
+    /// ML-based instrument recommendation (NPS vs Index) based on:
+    ///   - Expense volatility (0=stable, 1=volatile)
+    ///   - Wage stability (0=unstable, 1=stable)
+    /// Returns confidence-rated recommendation with reasoning.
+    /// </summary>
+    public async Task<RiskProfileResponse> GetRiskProfileAsync(
+        double principal, int age, double annualIncome, 
+        double expenseVolatility, double wageStability = 0.8)
+        => await PostAsync<RiskProfileResponse>("/compute/risk-profile", new
+        {
+            principal,
+            age,
+            annual_income = annualIncome,
+            expense_volatility = expenseVolatility,
+            wage_stability = wageStability
+        });
+
     // ── ML Predictions ────────────────────────────────────────────────────────
 
     /// <summary>
@@ -167,4 +218,53 @@ public class ModelMetadata
     public double R2Index     { get; set; }
     public double MaeNps      { get; set; }
     public double MaeIndex    { get; set; }
+}
+
+// ── Time-Series Response Types ─────────────────────────────────────────────
+
+public class TimeSeriesEntry
+{
+    public int    YearOffset      { get; set; }
+    public int    ProjectionYear  { get; set; }
+    public int    Age             { get; set; }
+    public double Balance         { get; set; }
+    public double NominalValue    { get; set; }
+    public double RealValue       { get; set; }
+    public double Roi             { get; set; }
+    public double GrowthRate      { get; set; }
+    public bool   IsRetirement    { get; set; }
+}
+
+public class MilestoneEntry
+{
+    public double Threshold       { get; set; }
+    public int    ProjectionYear  { get; set; }
+    public int    YearOffset      { get; set; }
+    public int    Age             { get; set; }
+    public double RealValue       { get; set; }
+    public string Description     { get; set; } = string.Empty;
+}
+
+public class TimeSeriesResponse
+{
+    public double Principal       { get; set; }
+    public int    StartAge        { get; set; }
+    public string Instrument      { get; set; } = string.Empty;
+    public List<TimeSeriesEntry> Timeline { get; set; } = new();
+    public List<MilestoneEntry>  Milestones { get; set; } = new();
+}
+
+// ── Risk Profile Response Types ────────────────────────────────────────────
+
+public class RiskProfileResponse
+{
+    public string RiskProfile           { get; set; } = string.Empty;
+    public string RecommendedInstrument { get; set; } = string.Empty;
+    public double Confidence            { get; set; }
+    public double ExpenseVolatility     { get; set; }
+    public double WageStability         { get; set; }
+    public double StabilityScore        { get; set; }
+    public string Reasoning             { get; set; } = string.Empty;
+    public List<string> NpsAdvantages   { get; set; } = new();
+    public List<string> IndexAdvantages { get; set; } = new();
 }

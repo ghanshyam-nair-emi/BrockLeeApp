@@ -1,0 +1,489 @@
+// ── RiskProfile Component SCSS ────────────────────────────────────────────────
+// Matches dashboard dark theme with indigo accents
+
+.risk-profile-container {
+  width: 100%;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.header {
+  padding: 1.2rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+
+  .title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 0.3rem 0;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.recommendation-card {
+  background: var(--color-input-bg);
+  border-radius: var(--radius-sm);
+  padding: 1.2rem;
+  margin: 1.2rem;
+  margin-bottom: 0;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+
+  .recommendation-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 2rem;
+
+    .recommendation-left {
+      display: flex;
+      gap: 1.5rem;
+      flex: 1;
+      align-items: center;
+
+      .instrument-icon {
+        font-size: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .recommendation-text {
+        .recommended-instrument {
+          font-size: 1.3rem;
+          font-weight: 600;
+          color: var(--color-accent);
+          margin: 0 0 0.3rem 0;
+        }
+
+        .recommendation-reason {
+          font-size: 0.85rem;
+          color: var(--color-text-secondary);
+          margin: 0;
+          line-height: 1.5;
+        }
+      }
+    }
+
+    .recommendation-right {
+      .confidence-badge {
+        text-align: center;
+
+        .confidence-circle {
+          width: 90px;
+          height: 90px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+          margin: 0 auto 0.5rem;
+
+          .confidence-value {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+          }
+        }
+
+        .confidence-label {
+          margin: 0;
+          font-weight: 600;
+          color: var(--color-text-secondary);
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+
+  .risk-profile-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.8rem;
+
+    &.badge-conservative {
+      background-color: rgba(56, 189, 248, 0.15);
+      color: var(--color-info);
+    }
+
+    &.badge-moderate {
+      background-color: rgba(234, 179, 8, 0.15);
+      color: var(--color-warning);
+    }
+
+    &.badge-aggressive {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: var(--color-danger);
+    }
+  }
+}
+
+.metrics-section {
+  padding: 1.2rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+
+  .section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 0.8rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.8rem;
+
+    .metric-card {
+      background: var(--color-input-bg);
+      padding: 0.8rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      border-left: 3px solid var(--color-accent);
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-left-color: var(--color-accent);
+        background: rgba(99, 102, 241, 0.02);
+      }
+
+      &.highlight {
+        border-left-color: var(--color-info);
+      }
+
+      .metric-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+
+        .metric-label {
+          font-weight: 600;
+          color: var(--color-muted);
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .metric-value {
+          font-size: 1rem;
+          font-weight: 700;
+          color: var(--color-text);
+        }
+      }
+
+      .metric-bar {
+        height: 6px;
+        background-color: var(--color-border);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+
+        .metric-fill {
+          height: 100%;
+          border-radius: 3px;
+          background: var(--color-accent);
+          transition: width 0.3s ease;
+        }
+      }
+
+      .metric-description {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--color-muted);
+        margin: 0 0 0.2rem 0;
+      }
+
+      .metric-explanation {
+        font-size: 0.7rem;
+        color: var(--color-muted);
+        margin: 0;
+        line-height: 1.3;
+      }
+    }
+  }
+}
+
+.tabs-container {
+  background: var(--color-card-bg);
+  border-bottom: 1px solid var(--color-border);
+  margin: 0;
+  overflow: hidden;
+
+  .tabs-nav {
+    display: flex;
+    border-bottom: 2px solid var(--color-border);
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.8rem;
+      border: none;
+      background: var(--color-card-bg);
+      color: var(--color-muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+
+      &:hover {
+        background-color: var(--color-input-bg);
+        color: var(--color-text-secondary);
+      }
+
+      &.active {
+        color: var(--color-accent);
+        border-bottom: 2px solid var(--color-accent);
+        margin-bottom: -2px;
+      }
+    }
+  }
+
+  .tab-content {
+    padding: 1.2rem;
+
+    .comparison-container,
+    .advantages-container {
+      h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--color-text);
+        margin: 0 0 0.8rem 0;
+      }
+
+      .main-reasoning {
+        background-color: rgba(99, 102, 241, 0.08);
+        padding: 0.8rem;
+        border-left: 3px solid var(--color-accent);
+        border-radius: var(--radius-sm);
+        color: var(--color-text-secondary);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+        font-size: 0.85rem;
+      }
+
+      .key-points {
+        margin-bottom: 1rem;
+
+        h5 {
+          font-weight: 600;
+          color: var(--color-text);
+          margin: 0 0 0.5rem 0;
+          font-size: 0.85rem;
+        }
+
+        ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+
+          li {
+            padding: 0.3rem 0 0.3rem 1.2rem;
+            color: var(--color-text-secondary);
+            line-height: 1.5;
+            font-size: 0.8rem;
+            position: relative;
+
+            &::before {
+              content: '•';
+              position: absolute;
+              left: 0.5rem;
+              color: var(--color-accent);
+            }
+          }
+        }
+      }
+
+      .confidence-note {
+        background-color: rgba(56, 189, 248, 0.08);
+        padding: 0.8rem;
+        border-radius: var(--radius-sm);
+        color: var(--color-info);
+        font-size: 0.8rem;
+        line-height: 1.5;
+        border-left: 3px solid var(--color-info);
+      }
+    }
+
+    .advantages-container {
+      .advantage-section {
+        margin-bottom: 1rem;
+        padding: 0.8rem;
+        background-color: var(--color-input-bg);
+        border-radius: var(--radius-sm);
+        border-left: 3px solid var(--color-success);
+
+        &.alternative {
+          border-left-color: var(--color-muted);
+
+          .advantage-title {
+            color: var(--color-muted);
+          }
+        }
+
+        .advantage-title {
+          font-weight: 600;
+          color: var(--color-success);
+          margin: 0 0 0.6rem 0;
+          font-size: 0.9rem;
+        }
+
+        .advantage-list {
+          list-style: none;
+          padding: 0;
+          margin: 0 0 0.6rem 0;
+
+          .advantage-item {
+            padding: 0.3rem 0 0.3rem 1.2rem;
+            color: var(--color-text-secondary);
+            position: relative;
+            line-height: 1.4;
+            font-size: 0.8rem;
+
+            &::before {
+              content: '✓';
+              position: absolute;
+              left: 0;
+              color: var(--color-success);
+              font-weight: bold;
+            }
+          }
+        }
+
+        .alternative-note {
+          font-size: 0.75rem;
+          color: var(--color-muted);
+          margin: 0;
+          line-height: 1.4;
+        }
+      }
+    }
+  }
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.8rem;
+  padding: 1.2rem;
+  background: var(--color-card-bg);
+  border-top: 1px solid var(--color-border);
+
+  .btn {
+    padding: 0.7rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &.btn-primary {
+      background: var(--color-accent);
+      color: white;
+
+      &:hover:not(:disabled) {
+        background: var(--color-accent-hover);
+      }
+    }
+
+    &.btn-secondary {
+      background: transparent;
+      color: var(--color-accent);
+      border: 1px solid var(--color-accent);
+
+      &:hover:not(:disabled) {
+        background: rgba(99, 102, 241, 0.05);
+      }
+    }
+  }
+}
+
+.info-card {
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem;
+  color: var(--color-warning);
+  font-size: 0.8rem;
+  line-height: 1.5;
+
+  p {
+    margin: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .risk-profile-container {
+    border-radius: var(--radius-sm);
+  }
+
+  .recommendation-card {
+    margin: 0.8rem;
+
+    .recommendation-content {
+      flex-direction: column;
+      gap: 0.8rem;
+
+      .recommendation-left {
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+
+      .recommendation-right {
+        width: 100%;
+        text-align: center;
+
+        .confidence-badge .confidence-circle {
+          width: 80px;
+          height: 80px;
+
+          .confidence-value {
+            font-size: 1.2rem;
+          }
+        }
+      }
+    }
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tabs-content {
+    padding: 0.8rem;
+  }
+}

@@ -186,6 +186,66 @@ export interface PerformanceMetrics {
   threads: number;
 }
 
+// ── Time-Series Forecast ─────────────────────────────────────────────────────
+
+export interface TimeSeriesRequest {
+  principal:     number;
+  age:           number;
+  annual_income: number;
+  inflation:     number;
+}
+
+export interface TimeSeriesEntry {
+  yearOffset:    number;
+  projectionYear: number;
+  age:           number;
+  balance:       number;
+  nominalValue:  number;
+  realValue:     number;
+  roi:           number;
+  growthRate:    number;
+  isRetirement:  boolean;
+}
+
+export interface MilestoneEntry {
+  threshold:     number;
+  projectionYear: number;
+  yearOffset:    number;
+  age:           number;
+  realValue:     number;
+  description:   string;
+}
+
+export interface TimeSeriesResponse {
+  principal:   number;
+  startAge:    number;
+  instrument:  string;
+  timeline:    TimeSeriesEntry[];
+  milestones:  MilestoneEntry[];
+}
+
+// ── Risk Profile ──────────────────────────────────────────────────────────────
+
+export interface RiskProfileRequest {
+  principal:            number;
+  age:                  number;
+  annual_income:        number;
+  expense_volatility:   number;
+  wage_stability:       number;
+}
+
+export interface RiskProfileResponse {
+  riskProfile:           string;
+  recommendedInstrument: string;
+  confidence:            number;
+  expenseVolatility:     number;
+  wageStability:         number;
+  stabilityScore:        number;
+  reasoning:             string;
+  npsAdvantages:         string[];
+  indexAdvantages:       string[];
+}
+
 // ── UI state ──────────────────────────────────────────────────────────────────
 
 export type SubmitState = 'idle' | 'loading' | 'success' | 'error';

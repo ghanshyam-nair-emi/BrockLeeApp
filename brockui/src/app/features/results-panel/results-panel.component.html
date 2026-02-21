@@ -138,4 +138,101 @@
     </div>
   </div>
 
+  <!-- Advanced Features Section -->
+  <div class="advanced-features-section">
+
+    <!-- Risk Profile Card -->
+    <div class="feature-card">
+      <div class="feature-card-header">
+        <span class="feature-card-title">🎯 Risk-Based Recommendation</span>
+        <button
+          class="feature-toggle"
+          (click)="loadRiskProfile()"
+          [disabled]="loadingRiskProfile"
+          *ngIf="!riskProfileData">
+          {{loadingRiskProfile ? 'Analysing…' : 'Analyse My Risk Profile'}}
+        </button>
+        <button
+          class="feature-toggle active"
+          (click)="riskProfileData = null"
+          *ngIf="riskProfileData">
+          ✕ Close
+        </button>
+      </div>
+
+      <div class="feature-loading" *ngIf="loadingRiskProfile && !riskProfileData">
+        <div class="feature-spinner"></div>
+        <span>Calculating your risk profile…</span>
+      </div>
+
+      <app-risk-profile
+        *ngIf="riskProfileData"
+        [data]="riskProfileData"
+        [isLoading]="loadingRiskProfile"
+        (instrumentSelected)="onInstrumentSelected($event)">
+      </app-risk-profile>
+    </div>
+
+    <!-- Time-Series NPS Card -->
+    <div class="feature-card">
+      <div class="feature-card-header">
+        <span class="feature-card-title">🏛️ NPS Year-by-Year Projection</span>
+        <button
+          class="feature-toggle"
+          (click)="loadTimeSeries(true)"
+          [disabled]="loadingTimeSeries"
+          *ngIf="!timeSeriesDataNps">
+          {{loadingTimeSeries ? 'Loading…' : 'Load Projection'}}
+        </button>
+        <button
+          class="feature-toggle active"
+          (click)="timeSeriesDataNps = null"
+          *ngIf="timeSeriesDataNps">
+          ✕ Close
+        </button>
+      </div>
+
+      <div class="feature-loading" *ngIf="loadingTimeSeries && !timeSeriesDataNps">
+        <div class="feature-spinner"></div>
+        <span>Generating NPS projection…</span>
+      </div>
+
+      <app-timeseries-chart
+        *ngIf="timeSeriesDataNps"
+        [data]="timeSeriesDataNps">
+      </app-timeseries-chart>
+    </div>
+
+    <!-- Time-Series Index Card -->
+    <div class="feature-card">
+      <div class="feature-card-header">
+        <span class="feature-card-title">📊 Index Fund Year-by-Year Projection</span>
+        <button
+          class="feature-toggle"
+          (click)="loadTimeSeries(false)"
+          [disabled]="loadingTimeSeries"
+          *ngIf="!timeSeriesDataIndex">
+          {{loadingTimeSeries ? 'Loading…' : 'Load Projection'}}
+        </button>
+        <button
+          class="feature-toggle active"
+          (click)="timeSeriesDataIndex = null"
+          *ngIf="timeSeriesDataIndex">
+          ✕ Close
+        </button>
+      </div>
+
+      <div class="feature-loading" *ngIf="loadingTimeSeries && !timeSeriesDataIndex">
+        <div class="feature-spinner"></div>
+        <span>Generating Index Fund projection…</span>
+      </div>
+
+      <app-timeseries-chart
+        *ngIf="timeSeriesDataIndex"
+        [data]="timeSeriesDataIndex">
+      </app-timeseries-chart>
+    </div>
+
+  </div>
+
 </ng-container>
