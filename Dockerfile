@@ -66,7 +66,7 @@ COPY PythonScripts/data/ ./data/
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 supervisor curl \
+    python3 python3-pip supervisor curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -76,9 +76,10 @@ COPY --from=dotnet-build /app/publish ./
 
 # Python source + packages
 COPY --from=python-build /python /python
-COPY --from=python-build /usr/local/lib/python3.12/dist-packages \
-                         /usr/local/lib/python3.12/dist-packages
-COPY --from=python-build /usr/local/bin/uvicorn /usr/local/bin/uvicorn
+
+# Install Python deps in the final image (robust across base-image layouts)
+RUN python3 -m pip install --no-cache-dir --upgrade pip \
+ && python3 -m pip install --no-cache-dir -r /python/requirements.txt
 
 # supervisord
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
