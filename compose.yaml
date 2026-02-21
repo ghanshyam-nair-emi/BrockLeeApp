@@ -58,7 +58,7 @@ services:
       dockerfile: Dockerfile
 
     # Publish image to GitHub Container Registry (GHCR)
-    image: ghcr.io/ghanshyam-nair-emi/brockleeapp:latest
+    image: docker.io/ghantheman/brockleeapp:latest
 
     container_name: blk-hacking-ind-ghanshyam-nair
     ports:
