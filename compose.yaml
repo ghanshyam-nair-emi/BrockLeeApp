@@ -14,11 +14,11 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
-      interval: 15s
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
       timeout:  10s
-      retries:  5
-      start_period: 20s
+      retries:  12
+      start_period: 30s
     restart: unless-stopped
     networks:
       - brocklee-network
@@ -88,7 +88,7 @@ services:
 
     depends_on:
       rabbitmq:
-        condition: service_healthy
+        condition: service_started
       # Only used when local profile is enabled; safe otherwise
       mssql:
         condition: service_healthy
