@@ -2,6 +2,28 @@
 
 ---
 
+> ## 🐳 IMPORTANT: Pre-Built Docker Image Available
+>
+> **Skip the build step entirely — pull the ready-to-run Docker image directly from Docker Hub:**
+>
+> 🔗 **[https://hub.docker.com/repository/docker/ghantheman/brockleeapp](https://hub.docker.com/repository/docker/ghantheman/brockleeapp)**
+>
+> ```bash
+> docker pull ghantheman/brockleeapp
+> ```
+>
+> This is the recommended way to get started quickly without building from source.
+
+> ## 🎬 Submission Video
+>
+> **Watch the full project demo and walkthrough before getting started:**
+>
+> 📹 **[View Submission Video on Google Drive](https://drive.google.com/file/d/1U74BER_ZMVjaaCPL355AWxed_rgN8L3A/view?usp=sharing)**
+>
+> The video covers the complete feature set, architecture overview, and a live walkthrough of the application.
+
+---
+
 ## ⚡ Build & Run (Quick Reference)
 
 > Full setup instructions are further below. These commands are the only ones you need to get started.
@@ -380,7 +402,7 @@ BrockLee/
 │   │   └── LogServiceIntegrationTests.cs    # Integration: Database logging
 │   ├── Helpers/
 │   │   ├── TestDbContextFactory.cs          # Creates in-memory DB for tests
-│   │   └── TransactionBuilder.cs            # Test data factory
+│   │   └── TransactionBuilder.cs           # Test data factory
 │   └── BrockLee.Tests.csproj                # Test project configuration
 ```
 
