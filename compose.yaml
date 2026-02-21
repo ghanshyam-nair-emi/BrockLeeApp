@@ -1,17 +1,16 @@
 version: "3.9"
 
 services:
-
   # ── RabbitMQ message broker ──────────────────────────────────────────────
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     container_name: brocklee-rabbitmq
     ports:
-      - "5672:5672"       # AMQP — .NET MassTransit connects here
-      - "15672:15672"     # Management UI → http://localhost:15672
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: brocklee
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-brocklee-dev-password}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -24,56 +23,89 @@ services:
     networks:
       - brocklee-network
 
+  # ── Local SQL Server (ONLY for reviewers/local mode) ─────────────────────
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: brocklee-mssql
+    profiles: ["local"]
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+      # SQL Server requires a strong password (min 8, upper, lower, number, symbol)
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Str0ng!Passw0rd}
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\" || exit 1"
+        ]
+      interval: 10s
+      timeout:  5s
+      retries:  20
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - brocklee-network
+
   # ── Main application (Angular + .NET + Python in one container) ──────────
   app:
     build:
-      context:    .
+      context: .
       dockerfile: Dockerfile
     image: blk-hacking-ind-ghanshyam-nair
     container_name: blk-hacking-ind-ghanshyam-nair
     ports:
-      - "5477:5477"     # .NET API + Angular SPA
-                        # Python :8000 is internal only — not exposed
+      - "5477:5477"
     environment:
-      # ── ASP.NET Core ──────────────────────────────────────────────────────
-      ASPNETCORE_ENVIRONMENT:    Production
-      ASPNETCORE_URLS:           http://0.0.0.0:5477
-      DOTNET_RUNNING_IN_CONTAINER: "true"
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS:        http://0.0.0.0:5477
 
-      # ── Azure SQL (set in .env.production — never hardcode) ───────────────
-      ConnectionStrings__DefaultConnection: ${AZURE_SQL_CONNECTION_STRING}
-
-      # ── Python sidecar ────────────────────────────────────────────────────
-      # Internal loopback — Python runs in same container via supervisord
+      # Python sidecar (same container, supervisord)
       PythonService__BaseUrl: http://localhost:8000
 
-      # ── RabbitMQ ──────────────────────────────────────────────────────────
+      # RabbitMQ
       RabbitMq__Host:     rabbitmq
       RabbitMq__Port:     5672
       RabbitMq__Username: brocklee
-      RabbitMq__Password: ${RABBITMQ_PASSWORD}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD:-brocklee-dev-password}
 
-      # ── Cache TTLs ────────────────────────────────────────────────────────
+      # Cache
       Cache__MetricsTtlSeconds: 10
       Cache__LogsTtlSeconds:     5
       Cache__ComputeTtlSeconds: 30
 
+      # ── Database Connection (profile-dependent) ──────────────────────────
+      # LOCAL profile: connect to mssql container
+      # AZURE profile: use AZURE_SQL_CONNECTION_STRING
+      #
+      # We use a single env key expected by Program.cs:
+      #   ConnectionStrings__DefaultConnection
+      ConnectionStrings__DefaultConnection: ${ConnectionStrings__DefaultConnection}
+
     depends_on:
       rabbitmq:
-        condition: service_healthy   # wait for RabbitMQ before starting app
+        condition: service_healthy
+      # Only used when local profile is enabled; safe otherwise
+      mssql:
+        condition: service_healthy
+
     restart: unless-stopped
     healthcheck:
       test:         ["CMD", "curl", "-f", "http://localhost:5477/health"]
       interval:     30s
       timeout:      10s
       retries:      3
-      start_period: 90s    # Python ML training takes up to 60s at startup
+      start_period: 90s
     networks:
       - brocklee-network
 
 volumes:
   rabbitmq_data:
-    driver: local
+  mssql_data:
 
 networks:
   brocklee-network:
